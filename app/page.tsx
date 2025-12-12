@@ -1,65 +1,179 @@
-import Image from "next/image";
+'use client';
+import React, {useEffect, useState} from 'react';
+import { useMsal } from '@azure/msal-react';
+import { loginRequest } from './config/authConfig';
+import { auditoriaService, Auditoria } from './services/auditoriaServices';
+import { Loader2, PlusCircle, FileText, LogIn, LogOut, Calendar, Building} from 'lucide-react';
+import CreateAuditoriaModal from './components/auditoria/CreateAuditoriaModal';
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+export default function Dashboard() {
+    const { instance, accounts } = useMsal();
+    
+    // Estados solo para lectura
+    const [auditorias, setAuditorias] = useState<Auditoria[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // --- 1. Lógica de Autenticación ---
+    const handleLogin = () => {
+        // Abre el popup de Microsoft
+        instance.loginPopup(loginRequest).catch(e => {
+            console.error(e);
+            setError("No se pudo iniciar sesión en Microsoft.");
+        });
+    };
+
+    const handleLogout = () => {
+        // Cierra sesión y limpia el almacenamiento
+        instance.logoutPopup().catch(e => console.error(e));
+    };
+
+    // --- 2. Lógica de Carga de Datos ---
+    const cargarAuditorias = async () => {
+        try {
+            setLoading(true);
+            setError("");
+            // Llamamos al Backend (GET /auditorias/)
+            const data = await auditoriaService.getAuditorias();
+            setAuditorias(data);
+        } catch (err) {
+            console.error(err);
+            setError("No se pudieron cargar los datos. Verifica que el Backend esté corriendo.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- 3. Efecto Principal ---
+    useEffect(() => {
+        // Si hay un usuario detectado por MSAL
+        if (accounts.length > 0) {
+            cargarAuditorias();
+        } else {
+            // Si no hay usuario, apagamos el loading para mostrar la pantalla de login
+            setLoading(false);
+        }
+    }, [accounts]);
+
+
+    // --- 4. RENDERIZADO CONDICIONAL ---
+
+    // CASO A: Usuario NO Logueado -> Mostrar Pantalla de Login
+    if (accounts.length === 0) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+                <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md w-full border border-gray-100">
+                    <div className="bg-blue-50 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <LogIn size={32} className="text-blue-600" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Bienvenido</h1>
+                    <p className="text-gray-500 mb-8">
+                        Sistema de Seguimiento de Auditorías.<br/>
+                        Inicia sesión para ver tus asignaciones.
+                    </p>
+                    <button 
+                        onClick={handleLogin}
+                        className="w-full bg-blue-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-800 transition shadow-sm flex items-center justify-center gap-2"
+                    >
+                        <LogIn size={20} />
+                        Ingresar con cuenta corporativa
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // CASO B: Usuario Logueado pero Cargando datos -> Spinner
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <Loader2 className="animate-spin text-blue-600 mx-auto mb-2" size={40} />
+                    <p className="text-gray-500">Cargando auditorías...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // CASO C: Usuario Logueado y Datos Listos -> Dashboard
+    return (
+        <div className="min-h-screen bg-gray-50 p-8">
+            <div className="max-w-7xl mx-auto">
+                
+                {/* Encabezado Superior */}
+                <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Mis Auditorías</h1>
+                        <p className="text-gray-500 mt-1">
+                            Hola, <span className="font-semibold text-blue-900">{accounts[0]?.name}</span>
+                        </p>
+                    </div>
+
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm"
+                    >
+                        <PlusCircle size={20} />
+                        Nueva Auditoría
+                    </button>
+                    <button 
+                        onClick={handleLogout} 
+                        className="flex items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition text-sm font-medium"
+                    >
+                        <LogOut size={18} /> 
+                        Cerrar Sesión
+                    </button>
+                    
+                </div>
+
+                {/* Mensajes de Error */}
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2">
+                        <span>⚠️</span> {error}
+                    </div>
+                )}
+
+                {/* Lista de Auditorías */}
+                {auditorias.length === 0 ? (
+                    <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
+                        <FileText className="mx-auto text-gray-300 mb-4" size={64} />
+                        <h3 className="text-xl font-medium text-gray-900">No tienes auditorías asignadas</h3>
+                        <p className="text-gray-500 mt-2">Cuando se creen registros, aparecerán aquí.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {auditorias.map((aud) => (
+                            <div key={aud.id_aud} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                                <div className="flex justify-between items-start mb-4">
+                                    <h3 className="font-bold text-lg text-blue-900 leading-tight">
+                                        {aud.topic}
+                                    </h3>
+                                    <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded whitespace-nowrap ml-2">
+                                        {aud.radicate_onbase}
+                                    </span>
+                                </div>
+                                
+                                <div className="space-y-3 text-sm text-gray-600">
+                                    <div className="flex items-center gap-2">
+                                        <Building size={16} className="text-gray-400" />
+                                        <span>{aud.area}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Calendar size={16} className="text-gray-400" />
+                                        <span>Fecha: {aud.date_onbase}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        <CreateAuditoriaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={cargarAuditorias}
+      />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    );
 }
