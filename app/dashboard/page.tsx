@@ -1,13 +1,16 @@
 'use client';
 import React, {useEffect, useState} from 'react';
 import { useMsal } from '@azure/msal-react';
-import { loginRequest } from './config/authConfig';
-import { auditoriaService, Auditoria } from './services/auditoriaServices';
+import { loginRequest } from '../config/authConfig';
+import { auditoriaService, Auditoria } from '../services/auditoriaServices';
 import { Loader2, PlusCircle, FileText, LogIn, LogOut, Calendar, Building} from 'lucide-react';
-import CreateAuditoriaModal from './components/auditoria/CreateAuditoriaModal';
+import CreateAuditoriaModal from '../components/auditoria/CreateAuditoriaModal';
+import { useRouter } from 'next/navigation';
+import ThemeToggle from '../components/ui/ThemeToggle';
 
 export default function Dashboard() {
     const { instance, accounts } = useMsal();
+    const router = useRouter();
     
     // Estados solo para lectura
     const [auditorias, setAuditorias] = useState<Auditoria[]>([]);
@@ -98,7 +101,7 @@ export default function Dashboard() {
 
     // CASO C: Usuario Logueado y Datos Listos -> Dashboard
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
                 
                 {/* Encabezado Superior */}
@@ -110,20 +113,23 @@ export default function Dashboard() {
                         </p>
                     </div>
 
+                    <div className='flex items-center gap-3'>
+                        <ThemeToggle />
                     <button 
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm"
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer"
                     >
                         <PlusCircle size={20} />
                         Nueva Auditoría
                     </button>
                     <button 
                         onClick={handleLogout} 
-                        className="flex items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition text-sm font-medium"
+                        className="flex items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition text-sm font-medium cursor-pointer"
                     >
                         <LogOut size={18} /> 
                         Cerrar Sesión
                     </button>
+                    </div>
                     
                 </div>
 
@@ -144,8 +150,9 @@ export default function Dashboard() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {auditorias.map((aud) => (
-                            <div key={aud.id_aud} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                                <div className="flex justify-between items-start mb-4">
+                            <div key={aud.id_aud} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                            onClick={() => router.push(`dashboard/${aud.id_aud}`)}>
+                                <div className="flex justify-between items-start mb-4" > 
                                     <h3 className="font-bold text-lg text-blue-900 leading-tight">
                                         {aud.topic}
                                     </h3>

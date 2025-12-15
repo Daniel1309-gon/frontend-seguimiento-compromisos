@@ -37,4 +37,9 @@ export const auditoriaService = {
         const response = await api.get<Auditoria[]>("/auditorias/");
         return response.data;
     },
+
+    getAuditoriaById: async(id: number) => {
+        const response = await api.get<Auditoria>(`/auditorias/${id}/`);
+        return response.data;
+    },
 };
