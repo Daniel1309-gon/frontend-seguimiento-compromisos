@@ -17,6 +17,21 @@ export interface Auditoria{
     mejoras?: any[]
 }
 
+export interface OpMejora{
+    id_op: number;
+    aud_id: number;
+    description: string;
+    compromisos?: Compromiso | null;
+}
+
+export interface Compromiso{
+    id_com: number;
+    op_id: number;
+    action: string;
+    deadline?: string;
+    estado?: string;
+}
+
 export const auditoriaService = {
     getAuditores: async () => {
         const response = await api.get<Auditor[]>("/auditors/");
@@ -40,6 +55,16 @@ export const auditoriaService = {
 
     getAuditoriaById: async(id: number) => {
         const response = await api.get<Auditoria>(`/auditorias/${id}/`);
+        return response.data;
+    },
+
+    createOpMejora: async(idAuditoria: number, description: string) => {
+        const response = await api.post<OpMejora>(`/auditorias/${idAuditoria}/mejoras/`, {description});
+        return response.data;
+    },
+
+    createCompromiso: async(idOpMejora: number, data: {action: string, deadline?: string}) => {
+        const response = await api.post<Compromiso>(`/mejoras/${idOpMejora}/compromisos/`, data);
         return response.data;
     },
 };

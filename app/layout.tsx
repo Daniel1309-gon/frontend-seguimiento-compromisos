@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} bg-gray-50 dark:bg-gray-900 transition-colors duration-300`}
+        className={`${inter.className} transition-colors duration-300`}
       >
         <Providers>
           <AuthProvider>

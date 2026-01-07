@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MsalProvider } from '@azure/msal-react';
-import { msalConfig, msalInstance } from '../../config/authConfig';
+import { msalInstance } from '../../config/authConfig';
 
 interface Props {
     children: React.ReactNode;

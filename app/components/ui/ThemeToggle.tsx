@@ -20,7 +20,7 @@ export default function ThemeToggle() {
         <button
             aria-label="Toggle Dark Mode"
             type="button"
-            className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-300"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
             {theme === "dark" ? <Sun size={20}/> : <Moon size={20}/>}
