@@ -165,7 +165,11 @@ export default function AuditoriaDetail({
               <OpMejoraItem 
                 key={mejora.id_op} 
                 hallazgo={mejora} 
-                onUpdate={cargarDetalle} // Pasamos la función para refrescar la pantalla
+                onUpdate={cargarDetalle}
+                onDeleteMejora={async () => {
+                  await auditoriaService.deleteOpMejora(mejora.id_op);
+                  cargarDetalle();
+                }} // Pasamos la función para refrescar la pantalla
               />
             ))}
           </div>

@@ -67,4 +67,17 @@ export const auditoriaService = {
         const response = await api.post<Compromiso>(`/mejoras/${idOpMejora}/compromisos/`, data);
         return response.data;
     },
+
+    deleteAuditoria: async(id_auditoria: number) => {
+        await api.delete(`/auditorias/${id_auditoria}/`);
+    },
+
+    deleteOpMejora: async(op_id: number) => {
+        await api.delete(`/mejoras/${op_id}/`);
+    },
+
+    deleteCompromiso: async(compromiso_id: number) => {
+        await api.delete(`/compromisos/${compromiso_id}/`);
+    },
+
 };

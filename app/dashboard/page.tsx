@@ -15,6 +15,7 @@ import {
 import CreateAuditoriaModal from "../components/auditoria/CreateAuditoriaModal";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import DeleteButton from "../components/ui/DeleteButton";
 
 export default function Dashboard() {
   const { instance, accounts } = useMsal();
@@ -117,6 +118,8 @@ export default function Dashboard() {
     );
   }
 
+  console.log(auditorias);
+
   // CASO C: Usuario Logueado y Datos Listos -> Dashboard
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors duration-300">
@@ -177,26 +180,44 @@ export default function Dashboard() {
             {auditorias.map((aud) => (
               <div
                 key={aud.id_aud}
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                onClick={() => router.push(`dashboard/${aud.id_aud}`)}
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200 cursor-pointer relative group"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-lg text-blue-900 dark:text-blue-300 leading-tight group-hover:text-blue-700 dark:group-hover:text-blue-200 transition-colors">
-                    {aud.topic}
-                  </h3>
-                  <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded whitespace-nowrap ml-2">
-                    {aud.radicate_onbase}
-                  </span>
-                </div>
+                <div onClick={() => router.push(`dashboard/${aud.id_aud}`)}>
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-bold text-lg text-blue-900 dark:text-blue-300 leading-tight group-hover:text-blue-700 dark:group-hover:text-blue-200 transition-colors">
+                      {aud.topic}
+                    </h3>
 
-                <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <Building size={16} className="text-gray-400 dark:text-gray-500" />
-                    <span>{aud.area}</span>
+                    <div className="absolute top-4 right-4 ">
+                      <DeleteButton
+                        compact
+                        onDelete={async () => {
+                          await auditoriaService.deleteAuditoria(aud.id_aud);
+                          cargarAuditorias();
+                        }}
+                        itemName="este informe de auditoría"
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-gray-400 dark:text-gray-500" />
-                    <span>Fecha: {aud.date_onbase}</span>
+
+                  <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <Building
+                        size={16}
+                        className="text-gray-400 dark:text-gray-500"
+                      />
+                      <span>{aud.area}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar
+                        size={16}
+                        className="text-gray-400 dark:text-gray-500"
+                      />
+                      <span>Fecha: {aud.date_onbase}</span>
+                      <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded whitespace-nowrap ml-2 absolute right-4">
+                        {aud.radicate_onbase}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
