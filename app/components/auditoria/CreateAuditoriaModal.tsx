@@ -1,126 +1,201 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useMsal } from '@azure/msal-react';
-import { auditoriaService } from '@/app/services/auditoriaServices';
-import { X, Loader2, Save } from 'lucide-react';
-import { on } from 'events';
+import React, { useEffect, useState } from "react";
+import { useMsal } from "@azure/msal-react";
+import { auditoriaService } from "@/app/services/auditoriaServices";
+import { X, Loader2, Save } from "lucide-react";
+import { on } from "events";
 
 interface Props {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function CreateAuditoriaModal({ isOpen, onClose, onSuccess }: Props) {
-    const { accounts } = useMsal();
-    const [loading, setLoading] = useState<boolean>(false);
+const DEPARTAMENTOS = [
+  "Análisis de Entidades Financieras y Simulacros",
+  "Comunicaciones y Relaciones Corporativas",
+  "Desarrollo Administrativo",
+  "Estrategia y Transformación",
+  "Gestión de Contenidos",
+  "Gestión de Inversiones",
+  "Gestión de Otros Activos",
+  "Información Financiera",
+  "Jurídico",
+  "Operaciones de Tesorería",
+  "Riesgo Operativo y Procesos",
+  "Riesgos Financieros de la Reserva",
+  "Relacionamiento Ciudadano",
+  "Resolución y Liquidaciones",
+  "Sistema de Seguro de Depósitos",
+  "Talento Humano",
+  "Tecnologías de la Información",
+];
 
-    const [formData, setFormData] = useState({
-        topic: '',
-        area: '',
-        radicate_onbase: ''
-    });
+export default function CreateAuditoriaModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: Props) {
+  const { accounts } = useMsal();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [auditoresList, setAuditoresList] = useState<any[]>([]);
+  const [iscreating, setIsCreating] = useState<boolean>(false);
 
-    if (!isOpen) return null;
+  const [formData, setFormData] = useState({
+    topic: "",
+    area: "",
+    radicate_onbase: "",
+    user_aud: "",
+  });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.topic || !formData.area || !formData.radicate_onbase || !formData.user_aud) {
+      alert("Por favor completa todos los campos.");
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+
+      await auditoriaService.createAuditoria({
+        ...formData,
+      });
       
-      if (!formData.topic || !formData.area || !formData.radicate_onbase) {
-          alert("Por favor completa todos los campos.");
-          return;
-      }
+      setFormData({
+        topic: "",
+        area: "",
+        radicate_onbase: "",
+        user_aud: "",
+      });
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error("Error creando auditoria:", error);
+      alert(
+        "Hubo un error al crear la auditoria. Por favor, intenta de nuevo."
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  };
+  
+  const cargarDatosAuditores = async () => {
+    try {
+      setLoading(true);
+      const auditores = await auditoriaService.getAuditores();
+      setAuditoresList(auditores);
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    cargarDatosAuditores();
+  }, []);
+  
+  if (!isOpen) return null;
 
-      try {
-        setLoading(true);
-
-        const currentUserEmail = accounts[0]?.username;
-
-        await auditoriaService.createAuditoria({
-            ...formData,
-            user_aud: currentUserEmail || ''
-        });
-
-        setFormData({
-            topic: '',
-            area: '',
-            radicate_onbase: ''
-        });
-        onSuccess();
-        onClose();
-      } catch (error) {
-        console.error("Error creando auditoria:", error);
-        alert("Hubo un error al crear la auditoria. Por favor, intenta de nuevo.");
-      } finally {
-        setLoading(false);  
-      }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       {/* Contenedor del Modal */}
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200">
-        
+      <div className="bg-white dark:bg-gray-800 dark:border-gray-700 rounded-xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200">
         {/* Botón X para cerrar */}
-        <button 
+        <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
         >
-
           <X size={24} />
         </button>
 
         {/* Título */}
-        <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-bold text-gray-800">Nueva auditoría</h2>
-            <p className="text-sm text-gray-700 mt-1">Ingresa los datos iniciales de la auditoría.</p>
+        <div className="p-6 border-b border-gray-100 dark:border-gray-500">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-300">Nuevo informe</h2>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+            Ingresa los datos iniciales del informe.
+          </p>
         </div>
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          
           {/* Campo: Tema */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
               Tema / Título
             </label>
             <input
               type="text"
               autoFocus
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 text-gray-700"
+              className="w-full border border-gray-300 dark:border-gray-400 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 text-gray-700 dark:placeholder-gray-500 "
               placeholder="Ej. Auditoría ISO 9001 - 2024"
               value={formData.topic}
-              onChange={(e) => setFormData({...formData, topic: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, topic: e.target.value })
+              }
             />
           </div>
 
           {/* Campo: Área */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Área Auditada
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400  mb-1 block">
+              Departamento
             </label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 text-gray-700"
-              placeholder="Ej. Recursos Humanos"
+            <select
+              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               value={formData.area}
-              onChange={(e) => setFormData({...formData, area: e.target.value})}
-            />
+              onChange={(e) =>
+                setFormData({ ...formData, area: e.target.value })
+              }
+            >
+              <option value="" disabled>
+                Seleccione un departamento
+              </option>
+              {DEPARTAMENTOS.map((dep) => (
+                <option key={dep} value={dep}>
+                  {dep}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 block">
+              Auditor encargado
+            </label>
+            <select
+              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              value={formData.user_aud}
+              onChange={(e) =>
+                setFormData({ ...formData, user_aud: e.target.value })
+              }
+            >
+              <option value="">Asignar a...</option>
+              {auditoresList.map((aud) => (
+                <option key={aud.aud_user} value={aud.aud_user}>
+                  {aud.aud_user}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Campo: Radicado */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
               Radicado OnBase
             </label>
             <input
               type="text"
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 text-gray-700"
-              placeholder="Ej. R-2024-0015"
+              className="w-full border border-gray-300 dark:border-gray-400 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 dark:placeholder-gray-500 text-gray-700 dark:text-gray-300"
+              placeholder="Ej. XXXX-I-XXXXXX"
               value={formData.radicate_onbase}
-              onChange={(e) => setFormData({...formData, radicate_onbase: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, radicate_onbase: e.target.value })
+              }
             />
           </div>
 
@@ -129,22 +204,25 @@ export default function CreateAuditoriaModal({ isOpen, onClose, onSuccess }: Pro
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={iscreating}
               className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 font-medium transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-              {loading ? 'Guardando...' : 'Crear Auditoría'}
+              {iscreating ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                <Save size={18} />
+              )}
+              {iscreating ? "Guardando..." : "Crear Auditoría"}
             </button>
           </div>
-
         </form>
       </div>
     </div>
-    );
-};
+  );
+}

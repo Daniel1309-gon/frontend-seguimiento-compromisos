@@ -3,22 +3,15 @@ import React, { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../config/authConfig";
 import { auditoriaService, Auditoria } from "../services/auditoriaServices";
-import {
-  Loader2,
-  PlusCircle,
-  FileText,
-  LogIn,
-  LogOut,
-  Calendar,
-  Building,
-} from "lucide-react";
+import { Loader2, FileText, LogIn, Calendar, Building } from "lucide-react";
 import CreateAuditoriaModal from "../components/auditoria/CreateAuditoriaModal";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import DeleteButton from "../components/ui/DeleteButton";
+import { UserNav } from "../components/ui/UserNav";
+import LoginPage from "../components/ui/LoginPage";
 
 export default function Dashboard() {
-  const { instance, accounts } = useMsal();
   const router = useRouter();
 
   // Estados solo para lectura
@@ -26,27 +19,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  /*   const [departamentos, setDepartamentos] = useState<string[]>(DEPARTAMENTOS); */
 
   // --- 1. Lógica de Autenticación ---
-  const handleLogin = () => {
-    // Abre el popup de Microsoft
-    instance.loginPopup(loginRequest).catch((e) => {
-      console.error(e);
-      setError("No se pudo iniciar sesión en Microsoft.");
-    });
-  };
+  const { accounts } = useMsal();
 
-  const handleLogout = () => {
-    // Cierra sesión y limpia el almacenamiento
-    instance.logoutPopup().catch((e) => console.error(e));
-  };
 
   // --- 2. Lógica de Carga de Datos ---
   const cargarAuditorias = async () => {
     try {
       setLoading(true);
       setError("");
-      // Llamamos al Backend (GET /auditorias/)
       const data = await auditoriaService.getAuditorias();
       setAuditorias(data);
     } catch (err) {
@@ -74,33 +57,7 @@ export default function Dashboard() {
 
   // CASO A: Usuario NO Logueado -> Mostrar Pantalla de Login
   if (accounts.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors duration-300">
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg text-center max-w-md w-full border border-gray-100 dark:border-gray-700">
-          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-            <LogIn size={32} className="text-blue-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Bienvenido
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">
-            Sistema de Seguimiento de Auditorías.
-            <br />
-            Inicia sesión para ver tus asignaciones.
-          </p>
-          <button
-            onClick={handleLogin}
-            className="w-full bg-blue-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-800 transition shadow-sm flex items-center justify-center gap-2"
-          >
-            <LogIn size={20} />
-            Ingresar con cuenta corporativa
-          </button>
-          <div className="mt-6 flex justify-center">
-            <ThemeToggle />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoginPage />;
   }
 
   // CASO B: Usuario Logueado pero Cargando datos -> Spinner
@@ -118,44 +75,12 @@ export default function Dashboard() {
     );
   }
 
-  console.log(auditorias);
-
   // CASO C: Usuario Logueado y Datos Listos -> Dashboard
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Encabezado Superior */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Mis Auditorías
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Hola,{" "}
-              <span className="font-semibold text-blue-900 dark:text-blue-400">
-                {accounts[0]?.name}
-              </span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer"
-            >
-              <PlusCircle size={20} />
-              Nueva Auditoría
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 px-4 py-2 rounded-lg transition text-sm font-medium cursor-pointer"
-            >
-              <LogOut size={18} />
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
+        {<UserNav />}
 
         {/* Mensajes de Error */}
         {error && (

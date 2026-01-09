@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Seguimiento A mejoras",
+  title: "Seguimiento mejoras de auditoría",
   description: "Gestión de oportunidades de mejora y compromisos",
 };
 

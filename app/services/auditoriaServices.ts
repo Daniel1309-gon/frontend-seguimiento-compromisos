@@ -80,4 +80,9 @@ export const auditoriaService = {
         await api.delete(`/compromisos/${compromiso_id}/`);
     },
 
+    updateCompromiso: async(compromiso_id: number, data: {action?: string, deadline?: string, estado?: string}) => {
+        const response = await api.patch<Compromiso>(`/compromisos/${compromiso_id}/`, data);
+        return response.data;
+    },
+
 };

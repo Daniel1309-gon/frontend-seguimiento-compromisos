@@ -8,6 +8,9 @@ import {
   Save,
   CheckCircle2,
   AlertCircle,
+  Circle,
+  X,
+  Pencil,
 } from "lucide-react";
 import DeleteButton from "../ui/DeleteButton";
 
@@ -28,8 +31,29 @@ export default function OpMejoraItem({
   const [action, setAction] = useState("");
   const [deadline, setDeadline] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [editAction, setEditAction] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const hasCompromiso = !!hallazgo.compromisos;
+
+  const toggleStatus = async () => {
+    if (!hallazgo.compromisos) return;
+
+    try {
+      const nuevoEstado =
+        hallazgo.compromisos!.estado === "En proceso"
+          ? "Completado"
+          : "En proceso";
+
+      await auditoriaService.updateCompromiso(hallazgo.compromisos!.id_com, {
+        estado: nuevoEstado,
+      });
+      onUpdate(); // Recargar para mostrar el nuevo estado
+    } catch (error) {
+      console.error(error);
+      alert("Error al actualizar el estado del compromiso");
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +71,31 @@ export default function OpMejoraItem({
     }
   };
 
+  const startEditing = () => {
+    if (hallazgo.compromisos) {
+      setEditAction(hallazgo.compromisos.action);
+      setEditDeadline(hallazgo.compromisos.deadline || "");
+      setIsEditing(true);
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    if (!hallazgo.compromisos) return;
+
+    try {
+      setLoading(true);
+      await auditoriaService.updateCompromiso(hallazgo.compromisos.id_com, {
+        action: editAction,
+        deadline: editDeadline,
+      });
+      onUpdate(); // Recargar para mostrar los cambios
+    } catch (error) {
+      alert("Error al actualizar compromiso");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
       {/* Cabecera del Hallazgo */}
@@ -55,9 +104,8 @@ export default function OpMejoraItem({
           <p className="text-gray-800 dark:text-gray-200 text-lg">
             {hallazgo.description}
           </p>
-
-          {/* Badge de Estado */}
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-2">
+            {/* Badge de Estado */}
             {hasCompromiso ? (
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
                 <CheckCircle2 size={12} /> Compromiso Definido
@@ -67,30 +115,24 @@ export default function OpMejoraItem({
                 <AlertCircle size={12} /> Sin Compromiso
               </span>
             )}
-          </div>
-        </div>
 
-        <div className="p-6 ... flex justify-between items-start">
-          <div className="flex-1">...</div>
-
-          <div className="flex items-center gap-2">
-            {/* Botón para borrar ESTE hallazgo */}
             {onDeleteMejora && (
-              <DeleteButton
-                compact
-                itemName="esta oportunidad de mejora"
-                onDelete={onDeleteMejora}
-              />
+              <div className="border-l pl-2 ml-1 border-gray-300 dark:border-gray-600">
+                <DeleteButton
+                  compact
+                  itemName="esta oportunidad de mejora"
+                  onDelete={onDeleteMejora}
+                />
+              </div>
             )}
-
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="ml-4 text-blue-600 dark:text-blue-400 p-1 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition"
-            >
-              {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
           </div>
         </div>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="ml-4 text-blue-600 dark:text-blue-400 p-1 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition"
+        >
+          {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </button>
       </div>
 
       {/* Zona Expandible */}
@@ -98,33 +140,138 @@ export default function OpMejoraItem({
         <div className="bg-gray-50 dark:bg-gray-900/50 p-6 border-t border-gray-100 dark:border-gray-700 animate-in slide-in-from-top-2">
           {/* CASO A: YA EXISTE COMPROMISO (Modo Lectura) */}
           {hasCompromiso ? (
-            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
-              <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">
-                Compromiso Actual
-              </h4>
-              <p className="text-gray-800 dark:text-white font-medium mb-1">
-                {hallazgo.compromisos?.action}
-              </p>
-              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <Calendar size={14} />
-                <span>Fecha límite: {hallazgo.compromisos?.deadline}</span>
-                <span className="bg-gray-100 dark:bg-gray-700 px-2 rounded text-xs">
-                  {hallazgo.compromisos?.estado}
-                </span>
+            <div
+              className={`
+            p-4 rounded border transition-all 
+            ${
+              hallazgo.compromisos?.estado === "Completado"
+                ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+                : "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+            }
+            `}
+            >
+              {isEditing ? (
+                <div className="flex flex-col gap-3">
+                  <h4 className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                    Editando Compromiso
+                  </h4>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <textarea
+                      rows={2}
+                      placeholder="¿Qué se va a hacer?"
+                      className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                      value={action}
+                      onChange={(e) => setAction(e.target.value)}
+                      required
+                    />
+                    <input
+                      type="date"
+                      className="md:w-40 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={editDeadline}
+                      onChange={(e) => setEditDeadline(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => setIsEditing(false)}
+                      className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1"
+                    >
+                      <X size={16} /> Cancelar
+                    </button>
+                    <button
+                      onClick={handleUpdate}
+                      disabled={loading}
+                      className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
+                    >
+                      {loading ? (
+                        "..."
+                      ) : (
+                        <>
+                          <Save size={16} /> Guardar Cambios
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* --- SUB-CASO A2: MODO LECTURA --- */
+                <div className="flex items-start gap-4">
+                  {/* Botón Estado */}
+                  <button
+                    onClick={toggleStatus}
+                    title="Cambiar estado"
+                    className={`mt-1 ${
+                      hallazgo.compromisos?.estado === "Completado"
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-gray-300 dark:text-gray-600 hover:text-gray-400"
+                    }`}
+                  >
+                    {hallazgo.compromisos?.estado === "Completado" ? (
+                      <CheckCircle2 size={24} />
+                    ) : (
+                      <Circle size={24} />
+                    )}
+                  </button>
 
-                <DeleteButton
-                  compact
-                  itemName="este compromiso"
-                  onDelete={async () => {
-                    if (hallazgo.compromisos) {
-                      await auditoriaService.deleteCompromiso(
-                        hallazgo.compromisos.id_com
-                      );
-                      onUpdate(); // Recargar padre
-                    }
-                  }}
-                />
-              </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Compromiso Actual
+                      </h4>
+
+                      {/* Acciones: Editar y Eliminar */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={startEditing}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                          title="Editar descripción o fecha"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                        <DeleteButton
+                          compact
+                          itemName="este compromiso"
+                          onDelete={async () => {
+                            if (hallazgo.compromisos) {
+                              await auditoriaService.deleteCompromiso(
+                                hallazgo.compromisos.id_com
+                              );
+                              onUpdate();
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <p
+                      className={`font-medium mb-2 ${
+                        hallazgo.compromisos?.estado === "Completado"
+                          ? "text-gray-500 line-through decoration-gray-400"
+                          : "text-gray-800 dark:text-white"
+                      }`}
+                    >
+                      {hallazgo.compromisos?.action}
+                    </p>
+
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        <Calendar size={14} />
+                        <span>Vence: {hallazgo.compromisos?.deadline}</span>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs font-medium border ${
+                          hallazgo.compromisos?.estado === "Completado"
+                            ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400"
+                        }`}
+                      >
+                        {hallazgo.compromisos?.estado}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* CASO B: NO EXISTE COMPROMISO (Modo Creación) */
@@ -133,10 +280,10 @@ export default function OpMejoraItem({
                 Definir Compromiso
               </h4>
               <div className="flex flex-col md:flex-row gap-2">
-                <input
-                  type="text"
-                  placeholder="¿Qué se va a hacer para corregir esto?"
-                  className="flex-1 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                <textarea
+                  rows={2}
+                  placeholder="¿Qué se va a hacer?"
+                  className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                   value={action}
                   onChange={(e) => setAction(e.target.value)}
                   required
@@ -151,10 +298,10 @@ export default function OpMejoraItem({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:py-0 rounded text-sm font-medium transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2"
                 >
                   {loading ? (
-                    "Guardando..."
+                    "..."
                   ) : (
                     <>
                       <Save size={16} /> Guardar
