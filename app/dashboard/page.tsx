@@ -1,15 +1,26 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "../config/authConfig";
 import { auditoriaService, Auditoria } from "../services/auditoriaServices";
-import { Loader2, FileText, LogIn, Calendar, Building } from "lucide-react";
+import {
+  Loader2,
+  FileText,
+  Calendar,
+  Building,
+  Filter,
+  XCircle,
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
+  ArrowUpNarrowWide,
+} from "lucide-react";
 import CreateAuditoriaModal from "../components/auditoria/CreateAuditoriaModal";
 import { useRouter } from "next/navigation";
-import ThemeToggle from "../components/ui/ThemeToggle";
 import DeleteButton from "../components/ui/DeleteButton";
 import { UserNav } from "../components/ui/UserNav";
 import LoginPage from "../components/ui/LoginPage";
+import { DEPARTAMENTOS } from "../components/auditoria/CreateAuditoriaModal";
+import { useAuditores } from "../hooks/useAuditores";
+import { formatDate } from "./[id]/page";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -19,11 +30,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  /*   const [departamentos, setDepartamentos] = useState<string[]>(DEPARTAMENTOS); */
+  const [filterArea, setFilterArea] = useState<string>("");
+  const [filterAuditor, setFilterAuditor] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  // --- 1. Lógica de Autenticación ---
+  const { auditores } = useAuditores();
+
   const { accounts } = useMsal();
-
 
   // --- 2. Lógica de Carga de Datos ---
   const cargarAuditorias = async () => {
@@ -53,6 +66,36 @@ export default function Dashboard() {
     }
   }, [accounts]);
 
+  const filteredAndSortedAuditorias = auditorias
+    .filter((aud) => {
+      const matchArea = filterArea ? aud.area === filterArea : true;
+      const matchAuditor = filterAuditor
+        ? aud.user_aud === filterAuditor
+        : true;
+      return matchArea && matchAuditor;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date_onbase).getTime();
+      const dateB = new Date(b.date_onbase).getTime();
+
+      if (sortOrder === "asc") {
+        return dateA - dateB;
+      } else {
+        return dateB - dateA;
+      }
+    });
+
+  const clearFilters = () => {
+    console.log(filteredAndSortedAuditorias);
+    setFilterArea("");
+    setFilterAuditor("");
+    setSortOrder("desc");
+  };
+
+  const toggleSort = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  };
+
   // --- 4. RENDERIZADO CONDICIONAL ---
 
   // CASO A: Usuario NO Logueado -> Mostrar Pantalla de Login
@@ -80,7 +123,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Encabezado Superior */}
-        {<UserNav />}
+        {<UserNav onOpenModal={() => setIsModalOpen(true)} />}
 
         {/* Mensajes de Error */}
         {error && (
@@ -89,8 +132,86 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Filtros */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* GRUPO IZQUIERDO: FILTROS */}
+            <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mr-2">
+                <Filter size={20} />
+                <span className="font-medium text-sm hidden sm:inline">
+                  Filtrar:
+                </span>
+              </div>
+
+              <select
+                value={filterArea}
+                onChange={(e) => setFilterArea(e.target.value)}
+                className="w-full md:w-auto border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">Todos los departamentos</option>
+                {DEPARTAMENTOS.map((dep) => (
+                  <option key={dep} value={dep}>
+                    {dep}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={filterAuditor}
+                onChange={(e) => setFilterAuditor(e.target.value)}
+                className="w-full md:w-auto border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">Todos los auditores</option>
+                {auditores.map((aud) => (
+                  <option key={aud.aud_user} value={aud.aud_user}>
+                    {aud.aud_name || aud.aud_user}
+                  </option>
+                ))}
+              </select>
+
+              {(filterArea || filterAuditor) && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium transition-colors whitespace-nowrap"
+                >
+                  <XCircle size={16} />
+                  Limpiar
+                </button>
+              )}
+            </div>
+
+            {/* GRUPO DERECHO: BOTÓN DE ORDENAR */}
+            <div className="w-full md:w-auto flex justify-end border-t md:border-t-0 pt-4 md:pt-0 border-gray-100 dark:border-gray-700">
+              <button
+                onClick={toggleSort}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                title="Ordenar por fecha de radicado"
+              >
+                {sortOrder === "desc" ? (
+                  <>
+                    <ArrowDownWideNarrow
+                      size={18}
+                      className="text-blue-600 dark:text-blue-400"
+                    />
+                    <span>Más recientes</span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpNarrowWide
+                      size={18}
+                      className="text-orange-600 dark:text-orange-400"
+                    />
+                    <span>Más antiguos</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Lista de Auditorías */}
-        {auditorias.length === 0 ? (
+        {filteredAndSortedAuditorias.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-dashed border-gray-300 dark:border-gray-700 transition-colors duration-300">
             <FileText className="mx-auto text-gray-300 mb-4" size={64} />
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
@@ -102,7 +223,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {auditorias.map((aud) => (
+            {filteredAndSortedAuditorias.map((aud) => (
               <div
                 key={aud.id_aud}
                 className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200 cursor-pointer relative group"
@@ -138,7 +259,7 @@ export default function Dashboard() {
                         size={16}
                         className="text-gray-400 dark:text-gray-500"
                       />
-                      <span>Fecha: {aud.date_onbase}</span>
+                      <span>Fecha: {formatDate(aud.date_onbase)}</span>
                       <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded whitespace-nowrap ml-2 absolute right-4">
                         {aud.radicate_onbase}
                       </span>

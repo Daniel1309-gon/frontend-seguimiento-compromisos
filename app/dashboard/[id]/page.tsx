@@ -14,6 +14,13 @@ import {
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
 import OpMejoraItem from "@/app/components/auditoria/OpMejoraItem";
 
+export const formatDate = (dateString: string | Date | undefined) => {
+  if (!dateString) return "Sin fecha"; // Maneja nulos
+
+  const fechaStr = dateString.toString().split('T')[0];
+  const [year, month, day] = fechaStr.split('-');
+  return `${day}/${month}/${year}`;
+};
 //next pasa los parametros de la url en el props
 
 export default function AuditoriaDetail({
@@ -106,7 +113,7 @@ export default function AuditoriaDetail({
                 <span className="flex items-center gap-1">
                   <Calendar size={16} />
                   Fecha en OnBase:{" "}
-                  {new Date(auditoria.date_onbase).toLocaleDateString()}
+                  {formatDate(auditoria.date_onbase)}
                 </span>
               </div>
             </div>

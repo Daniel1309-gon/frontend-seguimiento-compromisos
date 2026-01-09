@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import { auditoriaService } from "@/app/services/auditoriaServices";
-import { X, Loader2, Save } from "lucide-react";
-import { on } from "events";
+import { X, Loader2, Save, Calendar } from "lucide-react";
+import { useAuditores } from "@/app/hooks/useAuditores";
 
 interface Props {
   isOpen: boolean;
@@ -12,7 +12,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const DEPARTAMENTOS = [
+export const DEPARTAMENTOS = [
   "Análisis de Entidades Financieras y Simulacros",
   "Comunicaciones y Relaciones Corporativas",
   "Desarrollo Administrativo",
@@ -39,14 +39,15 @@ export default function CreateAuditoriaModal({
 }: Props) {
   const { accounts } = useMsal();
   const [loading, setLoading] = useState<boolean>(false);
-  const [auditoresList, setAuditoresList] = useState<any[]>([]);
   const [iscreating, setIsCreating] = useState<boolean>(false);
+  const {auditores, loading: loadingAuditores} = useAuditores();
 
   const [formData, setFormData] = useState({
     topic: "",
     area: "",
     radicate_onbase: "",
     user_aud: "",
+    date_onbase: new Date().toISOString().split('T')[0],
   });
 
   
@@ -70,6 +71,7 @@ export default function CreateAuditoriaModal({
         area: "",
         radicate_onbase: "",
         user_aud: "",
+        date_onbase: new Date().toISOString().split('T')[0],
       });
       onSuccess();
       onClose();
@@ -82,22 +84,6 @@ export default function CreateAuditoriaModal({
       setIsCreating(false);
     }
   };
-  
-  const cargarDatosAuditores = async () => {
-    try {
-      setLoading(true);
-      const auditores = await auditoriaService.getAuditores();
-      setAuditoresList(auditores);
-    } catch (error) {
-      console.error("Error cargando datos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    cargarDatosAuditores();
-  }, []);
   
   if (!isOpen) return null;
 
@@ -131,7 +117,7 @@ export default function CreateAuditoriaModal({
             <input
               type="text"
               autoFocus
-              className="w-full border border-gray-300 dark:border-gray-400 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 text-gray-700 dark:placeholder-gray-500 "
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 text-gray-700 dark:placeholder-gray-500 dark:text-white dark:bg-gray-800 text-sm"
               placeholder="Ej. Auditoría ISO 9001 - 2024"
               value={formData.topic}
               onChange={(e) =>
@@ -140,13 +126,30 @@ export default function CreateAuditoriaModal({
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+              Fecha de radicado (OnBase)
+            </label>
+            <div className="relative">
+                <input
+                type="date"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 pl-10 focus:ring-2 focus:ring-blue-500 outline-none transition dark:bg-gray-800 dark:text-white text-sm"
+                value={formData.date_onbase}
+                onChange={(e) =>
+                    setFormData({ ...formData, date_onbase: e.target.value })
+                }
+                />
+                <Calendar size={18} className="absolute left-3 top-3 text-gray-400" />
+            </div>
+          </div>
+
           {/* Campo: Área */}
           <div>
             <label className="text-sm font-medium text-gray-500 dark:text-gray-400  mb-1 block">
               Departamento
             </label>
             <select
-              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               value={formData.area}
               onChange={(e) =>
                 setFormData({ ...formData, area: e.target.value })
@@ -168,14 +171,15 @@ export default function CreateAuditoriaModal({
               Auditor encargado
             </label>
             <select
-              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               value={formData.user_aud}
               onChange={(e) =>
                 setFormData({ ...formData, user_aud: e.target.value })
               }
+              disabled={loadingAuditores}
             >
               <option value="">Asignar a...</option>
-              {auditoresList.map((aud) => (
+              {auditores.map((aud) => (
                 <option key={aud.aud_user} value={aud.aud_user}>
                   {aud.aud_user}
                 </option>
@@ -190,7 +194,7 @@ export default function CreateAuditoriaModal({
             </label>
             <input
               type="text"
-              className="w-full border border-gray-300 dark:border-gray-400 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 dark:placeholder-gray-500 text-gray-700 dark:text-gray-300"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-200 dark:placeholder-gray-500 text-gray-700 dark:text-gray-300 dark:bg-gray-800 text-sm"
               placeholder="Ej. XXXX-I-XXXXXX"
               value={formData.radicate_onbase}
               onChange={(e) =>

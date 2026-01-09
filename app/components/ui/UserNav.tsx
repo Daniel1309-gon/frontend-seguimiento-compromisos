@@ -5,11 +5,15 @@ import { loginRequest } from "@/app/config/authConfig";
 import { LogIn, LogOut, PlusCircle, User } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useState } from "react";
+import { on } from "events";
 
+interface UserNavProps {
+  onOpenModal: () => void;
+}
 
-export function UserNav() {
+export function UserNav({ onOpenModal }: UserNavProps) {
   const { instance, accounts } = useMsal();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const activeAccount = accounts[0];
 
   const handleLogout = () => {
@@ -35,7 +39,7 @@ export function UserNav() {
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={onOpenModal}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer"
           >
             <PlusCircle size={20} />

@@ -43,7 +43,7 @@ export const auditoriaService = {
         return response.data;
     },
 
-    createAuditoria: async(data: Omit<Auditoria, 'id_aud' | 'date_onbase'>) => {
+    createAuditoria: async(data: Omit<Auditoria, 'id_aud'>) => {
         const response = await api.post<Auditoria>("/auditorias/", data);
         return response.data;
     },
