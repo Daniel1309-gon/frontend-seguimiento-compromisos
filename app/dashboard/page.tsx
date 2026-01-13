@@ -1,7 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { auditoriaService, Auditoria } from "../services/auditoriaServices";
+import {
+  auditoriaService,
+  Auditoria,
+  StatsData,
+} from "../services/auditoriaServices";
 import {
   Loader2,
   FileText,
@@ -21,6 +25,9 @@ import LoginPage from "../components/ui/LoginPage";
 import { DEPARTAMENTOS } from "../components/auditoria/CreateAuditoriaModal";
 import { useAuditores } from "../hooks/useAuditores";
 import { formatDate } from "./[id]/page";
+import { PDFReport } from "../components/auditoria/PDFReport";
+import { pdf } from "@react-pdf/renderer";
+import { saveAs } from "file-saver";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -33,6 +40,8 @@ export default function Dashboard() {
   const [filterArea, setFilterArea] = useState<string>("");
   const [filterAuditor, setFilterAuditor] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [statsData, setStatsData] = useState<StatsData | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState<boolean>(false);
 
   const { auditores } = useAuditores();
 
@@ -96,6 +105,27 @@ export default function Dashboard() {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
+  const handleDownloadReport = async () => {
+    try {
+      setIsGeneratingReport(true);
+
+      const statsData = await auditoriaService.getStatsData();
+
+      const blob = await pdf(<PDFReport statsData={statsData} />).toBlob();
+
+      const fileName = `reporte_auditorias_${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
+
+      saveAs(blob, fileName);
+    } catch (error) {
+      console.error("Error generando reporte:", error);
+      alert("Ocurrió un error al generar el reporte PDF.");
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   // --- 4. RENDERIZADO CONDICIONAL ---
 
   // CASO A: Usuario NO Logueado -> Mostrar Pantalla de Login
@@ -135,7 +165,7 @@ export default function Dashboard() {
         {/* Filtros */}
         <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* GRUPO IZQUIERDO: FILTROS */}
+            {/* FILTROS */}
             <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mr-2">
                 <Filter size={20} />
@@ -181,8 +211,26 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* GRUPO DERECHO: BOTÓN DE ORDENAR */}
-            <div className="w-full md:w-auto flex justify-end border-t md:border-t-0 pt-4 md:pt-0 border-gray-100 dark:border-gray-700">
+            {/* ORDENAR */}
+            <div className="w-full md:w-auto flex flex-col md:flex-row justify-end gap-3 border-t md:border-t-0 pt-4 md:pt-0 border-gray-100 dark:border-gray-700">
+              <button
+                onClick={handleDownloadReport}
+                disabled={isGeneratingReport}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-wait cursor-pointer"
+              >
+                {isGeneratingReport ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>Generando...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText size={18} />
+                    <span>Descargar Reporte PDF</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={toggleSort}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
