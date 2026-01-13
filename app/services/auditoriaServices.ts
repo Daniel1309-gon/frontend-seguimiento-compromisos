@@ -41,6 +41,17 @@ export interface StatsData {
   por_estado_mejora: Record<string, number>;
 }
 
+export interface SystemLog {
+    id: number;
+    table_name: string;
+    action: string;
+    record_id: string;
+    changed_at: string;
+    old_data?: string;
+    new_data?: string;
+    app_user?: string;
+}
+
 export const auditoriaService = {
   getAuditores: async () => {
     const response = await api.get<Auditor[]>("/auditors/");
@@ -112,5 +123,14 @@ export const auditoriaService = {
   getStatsData: async () => {
     const response = await api.get<StatsData>(`/stats/general/`);
     return response.data;
+  },
+
+  getSystemLogs: async () => {
+    const response = await api.get<SystemLog[]>(`/admin/logs/`);
+    return response.data;
+  },
+
+  deleteAuditor: async (aud_user: string) => {
+    await api.delete(`/auditors/${aud_user}/`);
   },
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { auditoriaService, Auditor } from "../services/auditoriaServices";
 
 export function useAuditores() {
@@ -6,22 +6,24 @@ export function useAuditores() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
-  useEffect(() => {
-    const cargarAuditores = async () => {
-      try {
-        setLoading(true);
-        const data = await auditoriaService.getAuditores();
-        setAuditores(data);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudieron cargar los auditores.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargarAuditores();
+  const cargarAuditores = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await auditoriaService.getAuditores();
+      setAuditores(data);
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar los auditores.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { auditores, loading, error };
+  useEffect(() => {
+    cargarAuditores();
+  }, [cargarAuditores]);
+
+
+
+  return { auditores, loading, error, cargarAuditores };
 }

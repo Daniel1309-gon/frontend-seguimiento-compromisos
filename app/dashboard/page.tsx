@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   auditoriaService,
@@ -14,20 +14,19 @@ import {
   Filter,
   XCircle,
   ArrowDownWideNarrow,
-  ArrowUpWideNarrow,
   ArrowUpNarrowWide,
 } from "lucide-react";
 import CreateAuditoriaModal from "../components/auditoria/CreateAuditoriaModal";
 import { useRouter } from "next/navigation";
 import DeleteButton from "../components/ui/DeleteButton";
 import { UserNav } from "../components/ui/UserNav";
-import LoginPage from "../components/ui/LoginPage";
 import { DEPARTAMENTOS } from "../components/auditoria/CreateAuditoriaModal";
 import { useAuditores } from "../hooks/useAuditores";
 import { formatDate } from "./[id]/page";
 import { PDFReport } from "../components/auditoria/PDFReport";
 import { pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
+import { InteractionStatus } from "@azure/msal-browser";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -40,12 +39,18 @@ export default function Dashboard() {
   const [filterArea, setFilterArea] = useState<string>("");
   const [filterAuditor, setFilterAuditor] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [statsData, setStatsData] = useState<StatsData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState<boolean>(false);
 
   const { auditores } = useAuditores();
 
-  const { accounts } = useMsal();
+  const { accounts, inProgress } = useMsal();
+
+  useEffect(() => {
+    // Si no hay usuario logueado, redirigir al login
+    if (inProgress === InteractionStatus.None && accounts.length === 0) {
+      router.push("/login");
+    }
+  }, [inProgress, accounts, router]);
 
   // --- 2. Lógica de Carga de Datos ---
   const cargarAuditorias = async () => {
@@ -64,16 +69,11 @@ export default function Dashboard() {
     }
   };
 
-  // --- 3. Efecto Principal ---
   useEffect(() => {
-    // Si hay un usuario detectado por MSAL
-    if (accounts.length > 0) {
+    if (inProgress === InteractionStatus.None && accounts.length > 0) {
       cargarAuditorias();
-    } else {
-      // Si no hay usuario, apagamos el loading para mostrar la pantalla de login
-      setLoading(false);
     }
-  }, [accounts]);
+  }, [inProgress, accounts]);
 
   const filteredAndSortedAuditorias = auditorias
     .filter((aud) => {
@@ -129,8 +129,13 @@ export default function Dashboard() {
   // --- 4. RENDERIZADO CONDICIONAL ---
 
   // CASO A: Usuario NO Logueado -> Mostrar Pantalla de Login
-  if (accounts.length === 0) {
-    return <LoginPage />;
+  if (inProgress !== InteractionStatus.None || accounts.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loader2 className="animate-spin text-blue-600 mr-2" size={40} />
+        <p className="text-gray-500">Verificando sesión...</p>
+      </div>
+    );
   }
 
   // CASO B: Usuario Logueado pero Cargando datos -> Spinner
@@ -233,7 +238,7 @@ export default function Dashboard() {
 
               <button
                 onClick={toggleSort}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
                 title="Ordenar por fecha de radicado"
               >
                 {sortOrder === "desc" ? (

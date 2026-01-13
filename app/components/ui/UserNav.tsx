@@ -1,11 +1,11 @@
 "use client";
-
 import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "@/app/config/authConfig";
-import { LogIn, LogOut, PlusCircle, User } from "lucide-react";
+import { LogOut, PlusCircle, Shield } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
-import { useState } from "react";
-import { on } from "events";
+import { ADMIN_EMAILS } from "@/app/admin/page";
+import { useRouter } from "next/dist/client/components/navigation";
+
+
 
 interface UserNavProps {
   onOpenModal: () => void;
@@ -13,8 +13,9 @@ interface UserNavProps {
 
 export function UserNav({ onOpenModal }: UserNavProps) {
   const { instance, accounts } = useMsal();
-
   const activeAccount = accounts[0];
+  const isAdmin = activeAccount && ADMIN_EMAILS.includes(activeAccount.username.toLocaleLowerCase());
+  const router = useRouter();
 
   const handleLogout = () => {
     // Cierra sesión y limpia el almacenamiento
@@ -38,6 +39,16 @@ export function UserNav({ onOpenModal }: UserNavProps) {
 
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          {isAdmin && (
+            <button
+              onClick={()=>{router.push('/admin')}}
+              className="flex items-center cursor-pointer gap-2 text-white bg-gray-600 dark:text-gray-200 hover:bg-gray-900 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition border border-gray-200 dark:border-gray-600"
+              title="Panel de Administración"
+              >
+                <Shield size={18} />
+                <span className="hidden md:inline font-medium">Panel de administración</span>
+              </button>
+              )}
           <button
             onClick={onOpenModal}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer"

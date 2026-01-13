@@ -37,4 +37,17 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Manejar el error 401 (no autorizado)
+      console.error("No autorizado. Redirigiendo al login...");
+      // Aquí podrías redirigir al usuario a la página de login
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
