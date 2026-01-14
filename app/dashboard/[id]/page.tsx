@@ -99,7 +99,7 @@ export default function AuditoriaDetail({
 
           <ThemeToggle />
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8">
+        <div className="bg-white  dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8">
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">

@@ -279,7 +279,7 @@ export default function Dashboard() {
             {filteredAndSortedAuditorias.map((aud) => (
               <div
                 key={aud.id_aud}
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200 cursor-pointer relative group"
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200 cursor-pointer relative group hover:animate-pulsing hover:animate-duration-600"
               >
                 <div onClick={() => router.push(`dashboard/${aud.id_aud}`)}>
                   <div className="flex justify-between items-start mb-4">

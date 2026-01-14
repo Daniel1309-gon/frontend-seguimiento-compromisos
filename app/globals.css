@@ -1,5 +1,6 @@
 /* src/app/globals.css */
 @import "tailwindcss";
+@import "tailwind-animations";
 
 /* En Tailwind 4, el modo oscuro por defecto usa la preferencia del sistema.
    Para forzar que funcione con el botón (estrategia 'class' de next-themes),

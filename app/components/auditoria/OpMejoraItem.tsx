@@ -97,7 +97,7 @@ export default function OpMejoraItem({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
+    <div className="bg-white hover:animate-pulsing hover:animate-duration-800 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
       {/* Cabecera del Hallazgo */}
       <div className="p-6 border-l-4 border-l-orange-500 flex justify-between items-start">
         <div className="flex-1">
