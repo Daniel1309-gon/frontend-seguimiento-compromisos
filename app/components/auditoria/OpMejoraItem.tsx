@@ -73,9 +73,10 @@ export default function OpMejoraItem({
 
   const startEditing = () => {
     if (hallazgo.compromisos) {
-      setEditAction(hallazgo.compromisos.action);
-      setEditDeadline(hallazgo.compromisos.deadline || "");
+      console.log("Iniciando edición con datos:", hallazgo.compromisos);
       setIsEditing(true);
+      setEditAction(hallazgo.compromisos.action || "");
+      setEditDeadline(hallazgo.compromisos.deadline || "");
     }
   };
 
@@ -92,6 +93,7 @@ export default function OpMejoraItem({
     } catch (error) {
       alert("Error al actualizar compromiso");
     } finally {
+      setIsEditing(false);
       setLoading(false);
     }
   };
@@ -101,7 +103,7 @@ export default function OpMejoraItem({
       {/* Cabecera del Hallazgo */}
       <div className="p-6 border-l-4 border-l-orange-500 flex justify-between items-start">
         <div className="flex-1">
-          <p className="text-gray-800 dark:text-gray-200 text-lg">
+          <p className="text-gray-800 dark:text-gray-200 text-md" style={{whiteSpace: "pre-wrap"}}>
             {hallazgo.description}
           </p>
           <div className="mt-3 flex items-center gap-2">
@@ -160,8 +162,8 @@ export default function OpMejoraItem({
                       rows={2}
                       placeholder="¿Qué se va a hacer?"
                       className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                      value={action}
-                      onChange={(e) => setAction(e.target.value)}
+                      value={editAction}
+                      onChange={(e) => setEditAction(e.target.value)}
                       required
                     />
                     <input

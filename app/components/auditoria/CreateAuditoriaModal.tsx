@@ -215,14 +215,14 @@ export default function CreateAuditoriaModal({
             <button
               type="submit"
               disabled={iscreating}
-              className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 font-medium transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-4 py-2 cursor-pointer text-white bg-blue-600 rounded-lg hover:bg-blue-700 font-medium transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {iscreating ? (
                 <Loader2 className="animate-spin" size={18} />
               ) : (
                 <Save size={18} />
               )}
-              {iscreating ? "Guardando..." : "Crear Auditoría"}
+              {iscreating ? "Guardando..." : "Registrar informe"}
             </button>
           </div>
         </form>

@@ -133,8 +133,8 @@ export default function AuditoriaDetail({
             onSubmit={handleAddMejora}
             className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex gap-3"
           >
-            <input
-              type="text"
+            <textarea
+              rows={2}
               value={newMejora}
               onChange={(e) => setNewMejora(e.target.value)}
               placeholder="Descripción del hallazgo..."
