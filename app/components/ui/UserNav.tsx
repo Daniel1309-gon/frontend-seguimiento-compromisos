@@ -2,10 +2,9 @@
 import { useMsal } from "@azure/msal-react";
 import { LogOut, PlusCircle, Shield } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
-import { ADMIN_EMAILS } from "@/app/admin/page";
 import { useRouter } from "next/dist/client/components/navigation";
-
-
+import { useEffect, useState } from "react";
+import { auditoriaService } from "@/app/services/auditoriaServices";
 
 interface UserNavProps {
   onOpenModal: () => void;
@@ -14,8 +13,26 @@ interface UserNavProps {
 export function UserNav({ onOpenModal }: UserNavProps) {
   const { instance, accounts } = useMsal();
   const activeAccount = accounts[0];
-  const isAdmin = activeAccount && ADMIN_EMAILS.includes(activeAccount.username.toLocaleLowerCase());
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const router = useRouter();
+  const [checkingAdmin, setCheckingAdmin] = useState<boolean>(true);
+
+  useEffect(() => {
+    const verifyAdmin = async () => {
+      try {
+        const verification = await auditoriaService.checkIsAdmin();
+        setIsAdmin(verification);
+      } catch (error) {
+        console.error("Error verificando permisos de administrador", error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
+    if (activeAccount) {
+      verifyAdmin();
+    }
+  }, [activeAccount]);
 
   const handleLogout = () => {
     // Cierra sesión y limpia el almacenamiento
@@ -39,16 +56,23 @@ export function UserNav({ onOpenModal }: UserNavProps) {
 
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          {isAdmin && (
+          {checkingAdmin ? (
+            <div className="w-8 h-8 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg">
+            </div>
+          ) : isAdmin && (
             <button
-              onClick={()=>{router.push('/admin')}}
+              onClick={() => {
+                router.push("/admin");
+              }}
               className="flex items-center cursor-pointer gap-2 text-white bg-gray-600 dark:text-gray-200 hover:bg-gray-900 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition border border-gray-200 dark:border-gray-600"
               title="Panel de Administración"
-              >
-                <Shield size={18} />
-                <span className="hidden md:inline font-medium">Panel de administración</span>
-              </button>
-              )}
+            >
+              <Shield size={18} />
+              <span className="hidden md:inline font-medium">
+                Panel de administración
+              </span>
+            </button>
+          )}
           <button
             onClick={onOpenModal}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer"
@@ -67,6 +91,6 @@ export function UserNav({ onOpenModal }: UserNavProps) {
       </div>
     );
   } else {
-    return
+    return;
   }
 }

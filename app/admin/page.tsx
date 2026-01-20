@@ -15,12 +15,7 @@ import { useAuditores } from "../hooks/useAuditores";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import DeleteButton from "../components/ui/DeleteButton";
 import { InteractionStatus } from "@azure/msal-browser";
-import { settings } from "../config/settings";
-// --- LISTA DE ADMINS (Validación frontend visual, la real está en backend) ---
-export const ADMIN_EMAILS = [
-    settings.admin_auditor,
-    settings.admin_pasante,
-];
+
 
 export default function AdminPage() {
   const { accounts, inProgress } = useMsal();
@@ -42,17 +37,26 @@ export default function AdminPage() {
   useEffect(() => {
     if (inProgress === InteractionStatus.None) {
       if (accounts.length > 0) {
-        const email = accounts[0].username; // username suele ser el email en Azure B2C/Entra
-        if (!ADMIN_EMAILS.includes(email.toLowerCase())) {
-          alert("Acceso denegado. Redirigiendo al dashboard.");
-          router.push("/dashboard");
-        } else {
-            setInitializing(false);
-          cargarDatos();
-        }
+        checkAdmin();
       }
     }
   }, [accounts, inProgress, router]);
+
+  const checkAdmin = async () => {
+    try {
+      const verification = await auditoriaService.checkIsAdmin();
+      if (!verification) {
+        alert("Acceso denegado. Redirigiendo al dashboard.");
+        router.push("/dashboard");
+      } else {
+        setInitializing(false);
+        cargarDatos();
+      }
+    } catch (error) {
+      console.error("Error verificando permisos de administrador", error);
+      router.push("/dashboard");
+    }
+  };
 
   const recargarLogs = async () => {
     try {
@@ -101,8 +105,8 @@ export default function AdminPage() {
   if (inProgress !== InteractionStatus.None || initializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-         <Loader2 className="animate-spin text-blue-600 mr-2" size={40} />
-         <p className="text-gray-500">Verificando permisos...</p>
+        <Loader2 className="animate-spin text-blue-600 mr-2" size={40} />
+        <p className="text-gray-500">Verificando permisos...</p>
       </div>
     );
   }
@@ -302,8 +306,8 @@ export default function AdminPage() {
                                               log.action === "INSERT"
                                                 ? "bg-green-500"
                                                 : log.action === "DELETE"
-                                                ? "bg-red-500"
-                                                : "bg-yellow-500"
+                                                  ? "bg-red-500"
+                                                  : "bg-yellow-500"
                                             }`}
                         >
                           {log.action}

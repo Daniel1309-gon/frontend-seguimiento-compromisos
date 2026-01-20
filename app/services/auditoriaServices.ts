@@ -133,4 +133,9 @@ export const auditoriaService = {
   deleteAuditor: async (aud_user: string) => {
     await api.delete(`/auditors/${aud_user}/`);
   },
+
+  checkIsAdmin: async () => {
+    const response = await api.get<boolean>(`/admin/is-admin/`);
+    return response.data;
+  },
 };
