@@ -1,8 +1,9 @@
 import axios from "axios";
 import { msalInstance, loginRequest } from "../config/authConfig";
+import { settings } from "../config/settings";
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_AZURE_APP_URI || "http://localhost:8000",
+    baseURL: settings.azure.appUri || "http://localhost:8000",
     headers: {
         "Content-Type": "application/json",
     },

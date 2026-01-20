@@ -1,10 +1,12 @@
-import {Configuration, PopupRequest, PublicClientApplication} from "@azure/msal-browser";
+import { Configuration, PopupRequest, PublicClientApplication } from "@azure/msal-browser";
+import { settings } from "./settings";
 
+// MSAL Configuration usando settings centralizados
 export const msalConfig: Configuration = {
     auth: {
-        clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID || "",
-        authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_TENANT_ID || ""}`,
-        redirectUri: "http://localhost:3000",
+        clientId: settings.azure.clientId,
+        authority: `https://login.microsoftonline.com/${settings.azure.tenantId}`,
+        redirectUri: settings.redirect_uri,
     },
     cache: {
         cacheLocation: "sessionStorage",
@@ -13,7 +15,7 @@ export const msalConfig: Configuration = {
 };
 
 export const loginRequest: PopupRequest = {
-    scopes: [`api://${process.env.NEXT_PUBLIC_AZURE_CLIENT_ID}/${process.env.NEXT_PUBLIC_SCOPE_NAME}` || ""],
+    scopes: [`api://${settings.azure.clientId}/${settings.azure.scopeName}`],
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);

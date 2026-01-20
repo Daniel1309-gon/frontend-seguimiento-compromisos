@@ -1,13 +1,16 @@
-import { useState, useEffect, use, useCallback } from "react";
+import { useState, useEffect, use, useCallback, useRef } from "react";
 import { auditoriaService, Auditor } from "../services/auditoriaServices";
 
 export function useAuditores() {
+  const fetching = useRef(false);
   const [auditores, setAuditores] = useState<Auditor[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
   const cargarAuditores = useCallback(async () => {
+    if (fetching.current) return;
     try {
+      fetching.current = true;
       setLoading(true);
       const data = await auditoriaService.getAuditores();
       setAuditores(data);

@@ -15,11 +15,11 @@ import { useAuditores } from "../hooks/useAuditores";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import DeleteButton from "../components/ui/DeleteButton";
 import { InteractionStatus } from "@azure/msal-browser";
-
+import { settings } from "../config/settings";
 // --- LISTA DE ADMINS (Validación frontend visual, la real está en backend) ---
 export const ADMIN_EMAILS = [
-  process.env.NEXT_PUBLIC_ADMIN_USER_AUDITOR,
-  process.env.NEXT_PUBLIC_ADMIN_USER_PASANTE,
+    settings.admin_auditor,
+    settings.admin_pasante,
 ];
 
 export default function AdminPage() {
