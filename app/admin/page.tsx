@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useMsal } from "@azure/msal-react";
 import { useRouter } from "next/navigation";
 import { auditoriaService, SystemLog } from "@/app/services/auditoriaServices";
@@ -33,16 +33,7 @@ export default function AdminPage() {
     aud_name: "",
   });
 
-  // 1. Verificar permisos al entrar
-  useEffect(() => {
-    if (inProgress === InteractionStatus.None) {
-      if (accounts.length > 0) {
-        checkAdmin();
-      }
-    }
-  }, [accounts, inProgress, router]);
-
-  const checkAdmin = async () => {
+  const checkAdmin = useCallback(async () => {
     try {
       const verification = await auditoriaService.checkIsAdmin();
       if (!verification) {
@@ -56,7 +47,16 @@ export default function AdminPage() {
       console.error("Error verificando permisos de administrador", error);
       router.push("/dashboard");
     }
-  };
+  }, [router]);
+  // 1. Verificar permisos al entrar
+  useEffect(() => {
+    if (inProgress === InteractionStatus.None) {
+      if (accounts.length > 0) {
+        checkAdmin();
+      }
+    }
+  }, [accounts.length, inProgress, checkAdmin]);
+
 
   const recargarLogs = async () => {
     try {
@@ -89,6 +89,7 @@ export default function AdminPage() {
       await recargarLogs(); // Recargar logs
     } catch (e) {
       alert("Error creando auditor. Verifica que no exista ya.");
+      console.error(e);
     }
   };
 
@@ -99,6 +100,7 @@ export default function AdminPage() {
       await recargarLogs();
     } catch (e) {
       alert("Error eliminando. Puede que tenga auditorías asignadas.");
+      console.error(e);
     }
   };
 

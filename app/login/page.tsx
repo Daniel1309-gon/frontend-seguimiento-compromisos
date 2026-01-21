@@ -24,8 +24,8 @@ export default function LoginPage() {
       await instance.loginPopup(loginRequest);
       router.push("/dashboard");
     } catch (e) {
-      console.error(e);
       setError("No se pudo iniciar sesión en Microsoft.");
+      console.error(error, e);
     }
   };
 

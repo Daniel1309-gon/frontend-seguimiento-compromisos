@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import React, { useEffect, useState, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { auditoriaService, Auditoria } from "@/app/services/auditoriaServices";
 import {
@@ -35,7 +35,7 @@ export default function AuditoriaDetail({
   const [newMejora, setNewMejora] = useState<string>("");
   const [addingMejora, setAddingMejora] = useState<boolean>(false);
 
-  const cargarDetalle = async () => {
+  const cargarDetalle = useCallback(async () => {
     try {
       const idNum = parseInt(id);
       const data = await auditoriaService.getAuditoriaById(idNum);
@@ -48,13 +48,13 @@ export default function AuditoriaDetail({
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
 
   useEffect(() => {
     if (id) {
       cargarDetalle();
     }
-  }, [id, router]);
+  }, [cargarDetalle, id]);
 
   const handleAddMejora = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -162,7 +162,7 @@ export default function AuditoriaDetail({
               No se han registrado oportunidades de mejora en esta auditoría.
             </p>
             <p className="text-sm mt-1">
-              Usa el botón "Agregar oportunidad de mejora" para comenzar.
+              Usa el botón <strong>&quot;Agregar oportunidad de mejora&quot;</strong> para comenzar.
             </p>
           </div>
         ) : (

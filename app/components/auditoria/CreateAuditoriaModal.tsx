@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useMsal } from "@azure/msal-react";
+import React, { useState } from "react";
 import { auditoriaService } from "@/app/services/auditoriaServices";
 import { X, Loader2, Save, Calendar } from "lucide-react";
 import { useAuditores } from "@/app/hooks/useAuditores";
@@ -37,8 +36,8 @@ export default function CreateAuditoriaModal({
   onClose,
   onSuccess,
 }: Props) {
-  const { accounts } = useMsal();
-  const [loading, setLoading] = useState<boolean>(false);
+
+
   const [iscreating, setIsCreating] = useState<boolean>(false);
   const {auditores, loading: loadingAuditores} = useAuditores();
 

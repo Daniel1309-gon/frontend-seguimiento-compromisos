@@ -66,6 +66,7 @@ export default function OpMejoraItem({
       onUpdate(); // Recargar para mostrar la vista de "Solo Lectura"
     } catch (error) {
       alert("Error al guardar compromiso");
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ export default function OpMejoraItem({
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (_: React.FormEvent) => {
     if (!hallazgo.compromisos) return;
 
     try {
@@ -92,6 +93,7 @@ export default function OpMejoraItem({
       onUpdate(); // Recargar para mostrar los cambios
     } catch (error) {
       alert("Error al actualizar compromiso");
+      console.error(error);
     } finally {
       setIsEditing(false);
       setLoading(false);
@@ -99,7 +101,7 @@ export default function OpMejoraItem({
   };
 
   return (
-    <div className="bg-white hover:animate-pulsing hover:animate-duration-800 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
+    <div className="bg-white hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
       {/* Cabecera del Hallazgo */}
       <div className="p-6 border-l-4 border-l-orange-500 flex justify-between items-start">
         <div className="flex-1">
@@ -131,7 +133,7 @@ export default function OpMejoraItem({
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="ml-4 text-blue-600 dark:text-blue-400 p-1 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition"
+          className="ml-4 text-blue-600 dark:text-blue-400 p-1 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition cursor-pointer hover:text-black dark:hover:text-white"
         >
           {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>

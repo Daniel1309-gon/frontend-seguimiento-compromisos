@@ -1,10 +1,9 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   auditoriaService,
   Auditoria,
-  StatsData,
 } from "../services/auditoriaServices";
 import {
   Loader2,

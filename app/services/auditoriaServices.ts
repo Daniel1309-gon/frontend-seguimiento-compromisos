@@ -1,6 +1,5 @@
-import { create } from "domain";
 import api from "./api";
-import { get } from "http";
+
 
 export interface Auditor {
   aud_user: string;
@@ -14,7 +13,7 @@ export interface Auditoria {
   date_onbase: string;
   radicate_onbase: string;
   user_aud: string;
-  mejoras?: any[];
+  mejoras?: OpMejora[];
 }
 
 export interface OpMejora {
