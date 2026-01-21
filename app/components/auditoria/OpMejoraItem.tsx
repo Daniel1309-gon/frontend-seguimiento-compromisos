@@ -13,6 +13,7 @@ import {
   Pencil,
 } from "lucide-react";
 import DeleteButton from "../ui/DeleteButton";
+import ExpandableText from "../ui/ExpandableText";
 
 interface Props {
   hallazgo: OpMejora;
@@ -105,9 +106,12 @@ export default function OpMejoraItem({
       {/* Cabecera del Hallazgo */}
       <div className="p-6 border-l-4 border-l-orange-500 flex justify-between items-start">
         <div className="flex-1">
-          <p className="text-gray-800 dark:text-gray-200 text-md" style={{whiteSpace: "pre-wrap"}}>
-            {hallazgo.description}
-          </p>
+          <ExpandableText
+            text={hallazgo.description}
+            maxLines={4}
+            minLength={200}
+            className="text-md"
+          />
           <div className="mt-3 flex items-center gap-2">
             {/* Badge de Estado */}
             {hasCompromiso ? (
@@ -118,6 +122,7 @@ export default function OpMejoraItem({
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs font-medium">
                 <AlertCircle size={12} /> Sin Compromiso
               </span>
+              
             )}
 
             {onDeleteMejora && (
@@ -128,7 +133,9 @@ export default function OpMejoraItem({
                   onDelete={onDeleteMejora}
                 />
               </div>
+              
             )}
+            
           </div>
         </div>
         <button
