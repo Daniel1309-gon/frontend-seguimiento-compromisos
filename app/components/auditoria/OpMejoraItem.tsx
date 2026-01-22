@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import DeleteButton from "../ui/DeleteButton";
 import ExpandableText from "../ui/ExpandableText";
+import FollowUpButton from "../ui/FollowUpButton";
+import FollowUpCommentsModal from "./FollowUpCommentsModal";
 
 interface Props {
   hallazgo: OpMejora;
@@ -27,6 +29,8 @@ export default function OpMejoraItem({
   onDeleteMejora,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
+
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 
   // Estados del formulario
   const [action, setAction] = useState("");
@@ -232,6 +236,11 @@ export default function OpMejoraItem({
 
                       {/* Acciones: Editar y Eliminar */}
                       <div className="flex items-center gap-1">
+                        <FollowUpButton
+                          onClick={() => setIsCommentsOpen(true)}
+                          className="mr-2"
+                        />   
+                          <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"/>
                         <button
                           onClick={startEditing}
                           className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
@@ -239,7 +248,8 @@ export default function OpMejoraItem({
                         >
                           <Pencil size={16} />
                         </button>
-                        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"/>
+
                         <DeleteButton
                           compact
                           itemName="este compromiso"
@@ -251,7 +261,8 @@ export default function OpMejoraItem({
                               onUpdate();
                             }
                           }}
-                        />
+                          />
+                          
                       </div>
                     </div>
 
@@ -323,6 +334,15 @@ export default function OpMejoraItem({
             </form>
           )}
         </div>
+      )}
+      {/* Modal de Seguimiento */}
+      {hallazgo.compromisos && (
+        <FollowUpCommentsModal
+          isOpen={isCommentsOpen}
+          onClose={() => setIsCommentsOpen(false)}
+          compromisoId={hallazgo.compromisos.id_com}
+          compromisoTitle={hallazgo.compromisos.action}
+        />
       )}
     </div>
   );

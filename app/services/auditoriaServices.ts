@@ -51,6 +51,14 @@ export interface SystemLog {
     app_user?: string;
 }
 
+export interface Comment {
+  id_seg: number;
+  com_id: number;
+  observation: string;
+  created_at: string;
+  created_by: string;
+}
+
 export const auditoriaService = {
   getAuditores: async () => {
     const response = await api.get<Auditor[]>("/auditors/");
@@ -136,5 +144,21 @@ export const auditoriaService = {
   checkIsAdmin: async () => {
     const response = await api.get<boolean>(`/admin/is-admin/`);
     return response.data;
+  },
+
+  createComment: async (data: { id_com: number; observation: string }): Promise<Comment> => {
+    const response = await api.post(`/follow_up/${data.id_com}/comments/`, { observation: data.observation });
+    return response.data;
+  },
+
+  
+
+  getCommentsByCompromiso: async (id_com: number): Promise<Comment[]> => {
+    const response = await api.get(`/follow_up/${id_com}/comments/`);
+    return response.data;
+  },
+
+  deleteComment: async (id_seg: number): Promise<void> => {
+    await api.delete(`/follow_up/comments/${id_seg}/`);
   },
 };
