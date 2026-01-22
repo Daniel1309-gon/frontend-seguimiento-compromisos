@@ -87,13 +87,13 @@ export default function CreateAuditoriaModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 ">
       {/* Contenedor del Modal */}
-      <div className="bg-white dark:bg-gray-800 dark:border-gray-700 rounded-xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200">
+      <div className="bg-white dark:bg-gray-800 dark:border-gray-700 rounded-xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200 view-animate-[--subjectReveal] animate-zoom-in animate-range-gradual">
         {/* Botón X para cerrar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition cursor-pointer"
         >
           <X size={24} />
         </button>
@@ -207,7 +207,7 @@ export default function CreateAuditoriaModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition cursor-pointer"
             >
               Cancelar
             </button>
