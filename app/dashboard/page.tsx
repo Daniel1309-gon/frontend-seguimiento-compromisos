@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { auditoriaService, Auditoria } from "../services/auditoriaServices";
+import {
+  auditoriaService,
+  Auditoria,
+  CompromisoEnProceso,
+} from "../services/auditoriaServices";
 import { Loader2, FileText, Calendar, Building } from "lucide-react";
 import CreateAuditoriaModal from "../components/auditoria/CreateAuditoriaModal";
 import { useRouter } from "next/navigation";
@@ -14,6 +18,8 @@ import { pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 import { InteractionStatus } from "@azure/msal-browser";
 import FilterBar from "../components/ui/FilterBar";
+import UpcomingCompromisosSection from "../components/ui/UpcomingCompromisosSection";
+import { toggleCompromisoStatus } from "../services/compromisoUtils";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -27,6 +33,14 @@ export default function Dashboard() {
   const [filteredAuditorias, setFilteredAuditorias] = useState<Auditoria[]>([]);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isGeneratingReport, setIsGeneratingReport] = useState<boolean>(false);
+  const [upcomingCompromisos, setUpcomingCompromisos] = useState<
+    CompromisoEnProceso[]
+  >([]);
+  const [loadingUpcoming, setLoadingUpcoming] = useState<boolean>(false);
+  const [upcomingError, setUpcomingError] = useState("");
+  const [updatingCompromisoId, setUpdatingCompromisoId] = useState<
+    number | null
+  >(null);
 
   const { auditores } = useAuditores();
 
@@ -56,9 +70,41 @@ export default function Dashboard() {
     }
   };
 
+  const cargarCompromisosProximos = async () => {
+    try {
+      setLoadingUpcoming(true);
+      setUpcomingError("");
+      const data = await auditoriaService.getCompromisosEnProcesoProximos();
+      setUpcomingCompromisos(data);
+    } catch (err) {
+      console.error(err);
+      setUpcomingError(
+        "No se pudieron cargar los compromisos por vencer. Verifica el backend.",
+      );
+    } finally {
+      setLoadingUpcoming(false);
+    }
+  };
+
+  const handleToggleCompromisoStatus = async (
+    compromiso: CompromisoEnProceso,
+  ) => {
+    try {
+      setUpdatingCompromisoId(compromiso.id_com);
+      await toggleCompromisoStatus(compromiso.id_com, compromiso.estado);
+      await cargarCompromisosProximos();
+    } catch (err) {
+      console.error(err);
+      setUpcomingError("No se pudo actualizar el estado del compromiso.");
+    } finally {
+      setUpdatingCompromisoId(null);
+    }
+  };
+
   useEffect(() => {
     if (inProgress === InteractionStatus.None && accounts.length > 0) {
       cargarAuditorias();
+      cargarCompromisosProximos();
     }
   }, [inProgress, accounts]);
 
@@ -134,6 +180,16 @@ export default function Dashboard() {
           }}
           handleDownloadReport={handleDownloadReport}
           isGeneratingReport={isGeneratingReport}
+        />
+
+        <UpcomingCompromisosSection
+          compromisos={upcomingCompromisos}
+          loading={loadingUpcoming}
+          error={upcomingError}
+          updatingCompromisoId={updatingCompromisoId}
+          onViewAll={() => router.push("/compromisos/en-proceso")}
+          onToggleStatus={handleToggleCompromisoStatus}
+          formatDate={formatDate}
         />
 
         {/* Lista de Auditorías */}

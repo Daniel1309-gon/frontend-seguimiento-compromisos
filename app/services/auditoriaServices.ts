@@ -31,6 +31,19 @@ export interface Compromiso {
   estado?: string;
 }
 
+export interface CompromisoEnProceso {
+  id_com: number;
+  op_id: number;
+  action: string;
+  deadline: string;
+  estado: string;
+  op_description: string;
+  aud_id: number;
+  topic: string;
+  area: string;
+  radicate_onbase: string;
+}
+
 export interface StatsData {
   total_auditorias: number;
   por_auditor: Record<string, number>;
@@ -160,5 +173,19 @@ export const auditoriaService = {
 
   deleteComment: async (id_seg: number): Promise<void> => {
     await api.delete(`/follow_up/comments/${id_seg}/`);
+  },
+
+  getCompromisosEnProceso: async (): Promise<CompromisoEnProceso[]> => {
+    const response = await api.get<CompromisoEnProceso[]>(
+      "/compromisos/en-proceso/"
+    );
+    return response.data;
+  },
+
+  getCompromisosEnProcesoProximos: async (): Promise<CompromisoEnProceso[]> => {
+    const response = await api.get<CompromisoEnProceso[]>(
+      "/compromisos/en-proceso/proximos/"
+    );
+    return response.data;
   },
 };

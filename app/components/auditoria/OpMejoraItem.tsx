@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { OpMejora, auditoriaService } from "@/app/services/auditoriaServices";
+import { toggleCompromisoStatus } from "@/app/services/compromisoUtils";
 import {
   ChevronDown,
   ChevronUp,
@@ -45,14 +46,10 @@ export default function OpMejoraItem({
     if (!hallazgo.compromisos) return;
 
     try {
-      const nuevoEstado =
-        hallazgo.compromisos!.estado === "En proceso"
-          ? "Completado"
-          : "En proceso";
-
-      await auditoriaService.updateCompromiso(hallazgo.compromisos!.id_com, {
-        estado: nuevoEstado,
-      });
+      await toggleCompromisoStatus(
+        hallazgo.compromisos.id_com,
+        hallazgo.compromisos.estado ?? "En proceso",
+      );
       onUpdate(); // Recargar para mostrar el nuevo estado
     } catch (error) {
       console.error(error);
