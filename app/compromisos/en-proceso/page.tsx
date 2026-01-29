@@ -12,6 +12,12 @@ import {
 import { toggleCompromisoStatus } from "@/app/services/compromisoUtils";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
 import ToggleCompromisoStatusButton from "@/app/components/ui/ToggleCompromisoStatusButton";
+import CompromisosAlertBanner from "@/app/components/ui/CompromisosAlertBanner";
+import {
+  setAlertDismissedUntil,
+  shouldShowAlert,
+  ALERT_TTL_MS,
+} from "@/app/services/alertCompromisosCache";
 
 const formatDate = (dateString: string | Date | undefined) => {
   if (!dateString) return "Sin fecha";
@@ -27,6 +33,10 @@ export default function CompromisosEnProcesoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [alertCompromisos, setAlertCompromisos] = useState<CompromisoEnProceso[]>(
+    []
+  );
+  const [showAlertBanner, setShowAlertBanner] = useState(false);
 
   const cargarCompromisos = async () => {
     try {
@@ -53,6 +63,22 @@ export default function CompromisosEnProcesoPage() {
       cargarCompromisos();
     }
   }, [inProgress, accounts]);
+
+  useEffect(() => {
+    if (inProgress !== InteractionStatus.None || accounts.length === 0) return;
+
+    const loadAlertCompromisos = async () => {
+      try {
+        const fetched = await auditoriaService.getAlertCompromisos7Dias();
+        setAlertCompromisos(fetched);
+        setShowAlertBanner(shouldShowAlert(fetched.length > 0));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadAlertCompromisos();
+  }, [accounts.length, inProgress]);
 
   const handleToggleStatus = async (compromiso: CompromisoEnProceso) => {
     try {
@@ -93,21 +119,32 @@ export default function CompromisosEnProcesoPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8 transition-colors duration-300">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             Compromisos en proceso
           </h1>
-          <div className="flex justify-between items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <ThemeToggle />
 
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex gap-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition cursor-pointer"
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition cursor-pointer"
             >
-              < ArrowLeft /> Volver al Dashboard
+              <ArrowLeft /> Volver al Dashboard
             </button>
           </div>
         </div>
+
+        {showAlertBanner && (
+          <CompromisosAlertBanner
+            compromisos={alertCompromisos}
+            onViewAll={() => router.push("/compromisos/en-proceso")}
+            onClose={() => {
+              setAlertDismissedUntil(Date.now() + ALERT_TTL_MS);
+              setShowAlertBanner(false);
+            }}
+          />
+        )}
 
         <div className="mt-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>      

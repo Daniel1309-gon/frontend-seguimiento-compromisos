@@ -86,9 +86,9 @@ export default function AuditoriaDetail({
   if (!auditoria) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8 transition-colors">
       <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white mb-6 transition cursor-pointer"
@@ -99,13 +99,13 @@ export default function AuditoriaDetail({
 
           <ThemeToggle />
         </div>
-        <div className="bg-white  dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8">
-          <div className="flex justify-between items-start">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 mb-8">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
                 {auditoria.topic}
               </h1>
-              <div className="flex gap-4 text-gray-600 dark:text-gray-300 text-sm">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-gray-600 dark:text-gray-300 text-sm">
                 <span className="flex items-center gap-1">
                   <Building size={16} />
                   Área: {auditoria.area}
@@ -117,7 +117,7 @@ export default function AuditoriaDetail({
                 </span>
               </div>
             </div>
-            <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-lg font-mono font-medium">
+            <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-lg font-mono font-medium w-full sm:w-auto">
               Radicado OnBase:{" "}
               <span className="font-mono">{auditoria.radicate_onbase}</span>
             </div>
@@ -131,7 +131,7 @@ export default function AuditoriaDetail({
           </h2>
           <form
             onSubmit={handleAddMejora}
-            className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex gap-3"
+            className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row gap-3"
           >
             <textarea
               rows={2}
@@ -142,7 +142,7 @@ export default function AuditoriaDetail({
               disabled={addingMejora}
             />
             <button
-              className="bg-gray-900 dark:bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-black dark:hover:bg-blue-700 disabled:opacity-50 transition flex items-center gap-2"
+              className="bg-gray-900 dark:bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-black dark:hover:bg-blue-700 disabled:opacity-50 transition flex items-center gap-2 justify-center"
               disabled={addingMejora || !newMejora.trim()}
             >
               {addingMejora ? (

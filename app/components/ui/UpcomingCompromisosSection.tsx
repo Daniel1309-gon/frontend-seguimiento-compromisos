@@ -30,12 +30,12 @@ export default function UpcomingCompromisosSection({
             Compromisos por vencer (30 dias)
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Compromisos en proceso con fecha limite en los proximos 30 dias.
+            Compromisos en proceso con fecha limite en los próximos 30 días.
           </p>
         </div>
         <button
           onClick={onViewAll}
-          className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-200"
+          className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-200 dark:hover:bg-blue-900 cursor-pointer"
         >
           Ver todos los compromisos
         </button>

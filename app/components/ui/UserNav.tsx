@@ -41,7 +41,7 @@ export function UserNav({ onOpenModal }: UserNavProps) {
 
   if (activeAccount) {
     return (
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Informes de auditoría
@@ -54,7 +54,7 @@ export function UserNav({ onOpenModal }: UserNavProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <ThemeToggle />
           {checkingAdmin ? (
             <div className="w-8 h-8 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg">
@@ -64,7 +64,7 @@ export function UserNav({ onOpenModal }: UserNavProps) {
               onClick={() => {
                 router.push("/admin");
               }}
-              className="flex items-center cursor-pointer gap-2 text-white bg-gray-600 dark:text-gray-200 hover:bg-gray-900 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition border border-gray-200 dark:border-gray-600"
+              className="flex items-center cursor-pointer gap-2 text-white bg-gray-600 dark:text-gray-200 hover:bg-gray-900 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition border border-gray-200 dark:border-gray-600 w-full md:w-auto justify-center"
               title="Panel de Administración"
             >
               <Shield size={18} />
@@ -75,14 +75,14 @@ export function UserNav({ onOpenModal }: UserNavProps) {
           )}
           <button
             onClick={onOpenModal}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer w-full md:w-auto justify-center"
           >
             <PlusCircle size={20} />
             Nuevo informe
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 px-4 py-2 rounded-lg transition text-sm font-medium cursor-pointer"
+            className="flex items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 px-4 py-2 rounded-lg transition text-sm font-medium cursor-pointer w-full md:w-auto justify-center"
           >
             <LogOut size={18} />
             Cerrar sesión

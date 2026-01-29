@@ -188,4 +188,18 @@ export const auditoriaService = {
     );
     return response.data;
   },
+
+  getAlertCompromisos7Dias: async (): Promise<CompromisoEnProceso[]> => {
+    const response = await api.get<CompromisoEnProceso[]>(
+      "/compromisos/en-proceso/pronto_vencimiento/"
+    );
+    return response.data;
+  },
+
+  getReporteSeguimiento: async (year: number): Promise<Blob> => {
+    const response = await api.get(`/stats/reporte-seguimiento/?year=${year}`, {
+      responseType: "blob",
+    });
+    return response.data as Blob;
+  },
 };

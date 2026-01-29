@@ -112,7 +112,7 @@ export default function FollowUpCommentsModal({
           <X size={22} />
         </button>
 
-        <div className="p-6 border-b border-gray-100 dark:border-gray-600">
+        <div className="p-6 pr-14 border-b border-gray-100 dark:border-gray-600">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
             Seguimiento del compromiso
           </h2>
@@ -148,7 +148,7 @@ export default function FollowUpCommentsModal({
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-2">
-                      <p className="text-sm text-gray-800 dark:text-gray-100">
+                      <p className="text-sm text-gray-800 dark:text-gray-100 wrap-break-word">
                         {comment.observation}
                       </p>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -192,7 +192,7 @@ export default function FollowUpCommentsModal({
               <button
                 type="submit"
                 disabled={submitting || observation.trim().length === 0}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer w-full sm:w-auto justify-center"
               >
                 {submitting ? (
                   <Loader2 className="animate-spin" size={18} />

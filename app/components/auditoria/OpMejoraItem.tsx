@@ -105,7 +105,7 @@ export default function OpMejoraItem({
   return (
     <div className="bg-white hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
       {/* Cabecera del Hallazgo */}
-      <div className="p-6 border-l-4 border-l-orange-500 flex justify-between items-start">
+      <div className="p-6 border-l-4 border-l-orange-500 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div className="flex-1">
           <ExpandableText
             text={hallazgo.description}
@@ -113,7 +113,7 @@ export default function OpMejoraItem({
             minLength={200}
             className="text-md"
           />
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {/* Badge de Estado */}
             {hasCompromiso ? (
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
@@ -141,7 +141,7 @@ export default function OpMejoraItem({
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="ml-4 text-blue-600 dark:text-blue-400 p-1 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition cursor-pointer hover:text-black dark:hover:text-white"
+          className="sm:ml-4 text-blue-600 dark:text-blue-400 p-1 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition cursor-pointer hover:text-black dark:hover:text-white self-start"
         >
           {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>
@@ -207,7 +207,7 @@ export default function OpMejoraItem({
                 </div>
               ) : (
                 /* --- SUB-CASO A2: MODO LECTURA --- */
-                <div className="flex items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
                   {/* Botón Estado */}
                   <button
                     onClick={toggleStatus}
@@ -226,18 +226,18 @@ export default function OpMejoraItem({
                   </button>
 
                   <div className="flex-1">
-                    <div className="flex justify-between items-start mb-1">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-1">
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                         Compromiso Actual
                       </h4>
 
                       {/* Acciones: Editar y Eliminar */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         <FollowUpButton
                           onClick={() => setIsCommentsOpen(true)}
-                          className="mr-2"
-                        />   
-                          <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"/>
+                          className="mr-0 sm:mr-2"
+                        />
+                        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 hidden sm:block" />
                         <button
                           onClick={startEditing}
                           className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
@@ -245,7 +245,7 @@ export default function OpMejoraItem({
                         >
                           <Pencil size={16} />
                         </button>
-                        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"/>
+                        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 hidden sm:block" />
 
                         <DeleteButton
                           compact
@@ -273,7 +273,7 @@ export default function OpMejoraItem({
                       {hallazgo.compromisos?.action}
                     </p>
 
-                    <div className="flex items-center gap-3 text-sm">
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
                       <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                         <Calendar size={14} />
                         <span>Vence: {hallazgo.compromisos?.deadline}</span>
@@ -317,7 +317,7 @@ export default function OpMejoraItem({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 justify-center"
                 >
                   {loading ? (
                     "..."

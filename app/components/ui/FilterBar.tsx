@@ -15,6 +15,7 @@ interface FilterBarProps {
   auditorias: Auditoria[];
   auditores: Array<{ aud_user: string; aud_name: string }>;
   onFilteredChange: (filtered: Auditoria[], currentSortOrder: "asc" | "desc"  ) => void;
+  onYearChange?: (year: string) => void;
   handleDownloadReport: () => void;
   isGeneratingReport: boolean;
 }
@@ -23,6 +24,7 @@ export default function FilterBar({
   auditorias,
   auditores,
   onFilteredChange,
+  onYearChange,
   handleDownloadReport,
   isGeneratingReport,
 }: FilterBarProps) {
@@ -73,6 +75,12 @@ export default function FilterBar({
   useEffect(() => {
     onFilteredChange(filteredAndSorted, sortOrder);
   }, [filteredAndSorted, sortOrder, onFilteredChange]);
+
+  useEffect(() => {
+    if (onYearChange) {
+      onYearChange(filterYear);
+    }
+  }, [filterYear, onYearChange]);
 
   // Verificar si hay filtros activos
   const hasActiveFilters =
@@ -171,7 +179,7 @@ export default function FilterBar({
               onClick={handleDownloadReport}
               disabled={isGeneratingReport}
               className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm hover:shadow-md cursor-pointer"
-              title="Descargar reporte en formato PDF"
+              title="Descargar reporte en formato Excel"
             >
               {isGeneratingReport ? (
                 <>
@@ -181,7 +189,7 @@ export default function FilterBar({
               ) : (
                 <>
                   <FileText size={18} />
-                  <span>Descargar PDF</span>
+                  <span>Descargar Excel</span>
                 </>
               )}
             </button>

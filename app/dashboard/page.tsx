@@ -13,13 +13,17 @@ import DeleteButton from "../components/ui/DeleteButton";
 import { UserNav } from "../components/ui/UserNav";
 import { useAuditores } from "../hooks/useAuditores";
 import { formatDate } from "./[id]/page";
-import { PDFReport } from "../components/auditoria/PDFReport";
-import { pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 import { InteractionStatus } from "@azure/msal-browser";
 import FilterBar from "../components/ui/FilterBar";
 import UpcomingCompromisosSection from "../components/ui/UpcomingCompromisosSection";
 import { toggleCompromisoStatus } from "../services/compromisoUtils";
+import CompromisosAlertBanner from "../components/ui/CompromisosAlertBanner";
+import {
+  setAlertDismissedUntil,
+  shouldShowAlert,
+  ALERT_TTL_MS,
+} from "../services/alertCompromisosCache";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -33,14 +37,17 @@ export default function Dashboard() {
   const [filteredAuditorias, setFilteredAuditorias] = useState<Auditoria[]>([]);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isGeneratingReport, setIsGeneratingReport] = useState<boolean>(false);
+  const [selectedYear, setSelectedYear] = useState<string>(
+    new Date().getFullYear().toString(),
+  );
   const [upcomingCompromisos, setUpcomingCompromisos] = useState<
     CompromisoEnProceso[]
   >([]);
   const [loadingUpcoming, setLoadingUpcoming] = useState<boolean>(false);
   const [upcomingError, setUpcomingError] = useState("");
-  const [updatingCompromisoId, setUpdatingCompromisoId] = useState<
-    number | null
-  >(null);
+  const [updatingCompromisoId, setUpdatingCompromisoId] = useState<number | null>(null);
+  const [alertCompromisos, setAlertCompromisos] = useState<CompromisoEnProceso[]>([]);
+  const [showAlertBanner, setShowAlertBanner] = useState(false);
 
   const { auditores } = useAuditores();
 
@@ -101,29 +108,56 @@ export default function Dashboard() {
     }
   };
 
+  const cargarAlertCompromisos = async () => {
+    try {
+      const fetched = await auditoriaService.getAlertCompromisos7Dias();
+      setAlertCompromisos(fetched);
+      setShowAlertBanner(shouldShowAlert(fetched.length > 0));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (inProgress === InteractionStatus.None && accounts.length > 0) {
       cargarAuditorias();
       cargarCompromisosProximos();
+      cargarAlertCompromisos();
     }
   }, [inProgress, accounts]);
 
+
+  
+/*   useEffect(() => {
+    if (inProgress !== InteractionStatus.None || accounts.length === 0) return;
+
+    const loadAlertCompromisos = async () => {
+      try {
+        const fetched = await auditoriaService.getAlertCompromisos7Dias();
+        setAlertCompromisos(fetched);
+        setShowAlertBanner(shouldShowAlert(fetched.length > 0));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadAlertCompromisos();
+  }, [accounts.length, inProgress]); */
+
   const handleDownloadReport = async () => {
     try {
+      if (!selectedYear) {
+        alert("Selecciona un año para descargar el reporte.");
+        return;
+      }
       setIsGeneratingReport(true);
-
-      const statsData = await auditoriaService.getStatsData();
-
-      const blob = await pdf(<PDFReport statsData={statsData} />).toBlob();
-
-      const fileName = `reporte_auditorias_${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
-
+      const year = Number(selectedYear);
+      const blob = await auditoriaService.getReporteSeguimiento(year);
+      const fileName = `001_CONTROL_Y_SEGUIMIENTO_${selectedYear}.xlsx`;
       saveAs(blob, fileName);
     } catch (error) {
       console.error("Error generando reporte:", error);
-      alert("Ocurrió un error al generar el reporte PDF.");
+      alert("Ocurrió un error al generar el reporte Excel.");
     } finally {
       setIsGeneratingReport(false);
     }
@@ -178,9 +212,21 @@ export default function Dashboard() {
             setFilteredAuditorias(filtered);
             setSortOrder(order);
           }}
+          onYearChange={setSelectedYear}
           handleDownloadReport={handleDownloadReport}
           isGeneratingReport={isGeneratingReport}
         />
+
+        {showAlertBanner && (
+          <CompromisosAlertBanner
+            compromisos={alertCompromisos}
+            onViewAll={() => router.push("/compromisos/en-proceso")}
+            onClose={() => {
+              setAlertDismissedUntil(Date.now() + ALERT_TTL_MS);
+              setShowAlertBanner(false);
+            }}
+          />
+        )}
 
         <UpcomingCompromisosSection
           compromisos={upcomingCompromisos}
@@ -243,7 +289,7 @@ export default function Dashboard() {
                         className="text-gray-400 dark:text-gray-500"
                       />
                       <span>Fecha: {formatDate(aud.date_onbase)}</span>
-                      <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded whitespace-nowrap ml-2 absolute right-4">
+                      <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded whitespace-nowrap ml-2 static md:absolute md:right-4">
                         {aud.radicate_onbase}
                       </span>
                     </div>

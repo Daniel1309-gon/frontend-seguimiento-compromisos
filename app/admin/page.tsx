@@ -132,18 +132,18 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
+        <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <ShieldAlert className="text-red-600" /> Panel de Administración
           </h1>
-          <div className="flex justify-between items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <ThemeToggle />
 
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex gap-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition cursor-pointer"
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition cursor-pointer"
             >
               <ArrowLeft /> Volver al Dashboard
             </button>
@@ -151,7 +151,7 @@ export default function AdminPage() {
         </div>
 
         {/* TABS DE NAVEGACIÓN */}
-        <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 transition">
+        <div className="flex flex-wrap gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 transition">
           <button
             onClick={() => setActiveTab("auditores")}
             className={`pb-2 px-4 py-2 font-medium flex items-center gap-2 cursor-pointer ${
@@ -228,7 +228,7 @@ export default function AdminPage() {
             <div className="md:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
               <h3 className="font-bold text-lg mb-4">Funcionarios Activos</h3>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
+                <table className="w-full min-w-[560px] text-sm text-left">
                   <thead className="bg-gray-100 dark:bg-gray-700 uppercase">
                     <tr>
                       <th className="px-4 py-3">Usuario</th>
@@ -275,7 +275,7 @@ export default function AdminPage() {
         {activeTab === "logs" && (
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left text-gray-500 dark:text-gray-400">
+              <table className="w-full min-w-[720px] text-xs text-left text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                   <tr>
                     <th className="px-4 py-3">Fecha/Hora</th>
@@ -317,7 +317,7 @@ export default function AdminPage() {
                       </td>
                       <td className="px-4 py-2 font-mono">{log.record_id}</td>
                       <td
-                        className="px-4 py-2 max-w-xs truncate"
+                        className="px-4 py-2 max-w-[180px] sm:max-w-xs truncate"
                         title={log.new_data || log.old_data}
                       >
                         {log.new_data || log.old_data}
