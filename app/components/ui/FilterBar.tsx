@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Filter,
   XCircle,
@@ -100,8 +100,9 @@ export default function FilterBar({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
-      <div className="p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 
+        mb-6 ">
+      <div className="p-4 ">
         <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
           {/* SECCIÓN IZQUIERDA: FILTROS */}
           <div className="flex-1 w-full">
@@ -109,7 +110,6 @@ export default function FilterBar({
               {/* Etiqueta "Filtrar" */}
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                 <Filter size={20} />
-                <span className="font-medium text-sm">Filtrar:</span>
               </div>
 
               {/* Contenedor de Selects */}
@@ -173,12 +173,12 @@ export default function FilterBar({
           </div>
 
           {/* SECCIÓN DERECHA: ACCIONES */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto border-t lg:border-t-0 pt-4 lg:pt-0 border-gray-100 dark:border-gray-700">
-            {/* Botón Descargar PDF */}
+          <div className="flex flex-row gap-3 w-full lg:w-auto border-t lg:border-t-0 pt-4 lg:pt-0 border-gray-100 dark:border-gray-700 justify-between lg:justify-end">
+            {/* Botón Descargar Reporte */}
             <button
               onClick={handleDownloadReport}
-              disabled={isGeneratingReport}
-              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm hover:shadow-md cursor-pointer"
+              disabled={isGeneratingReport || filterYear === ""}
+              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm hover:shadow-md cursor-pointer sm:w-auto w-full"
               title="Descargar reporte en formato Excel"
             >
               {isGeneratingReport ? (
@@ -189,7 +189,7 @@ export default function FilterBar({
               ) : (
                 <>
                   <FileText size={18} />
-                  <span>Descargar Excel</span>
+                  <span className="hidden sm:inline">Reporte</span>
                 </>
               )}
             </button>
@@ -197,7 +197,7 @@ export default function FilterBar({
             {/* Botón Sort */}
             <button
               onClick={toggleSort}
-              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors shadow-sm cursor-pointer"
+              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors shadow-sm cursor-pointer sm:w-auto w-full"
               title={`Ordenar por fecha: ${sortOrder === "desc" ? "Más recientes primero" : "Más antiguos primero"}`}
             >
               {sortOrder === "desc" ? (

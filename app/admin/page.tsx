@@ -2,19 +2,21 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useMsal } from "@azure/msal-react";
 import { useRouter } from "next/navigation";
-import { auditoriaService, SystemLog } from "@/app/services/auditoriaServices";
+import { auditoriaService, StatsData, SystemLog } from "@/app/services/auditoriaServices";
 import {
   ShieldAlert,
   UserPlus,
   History,
   UserCog,
   ArrowLeft,
-  Loader2,
+  Loader2, 
+  Sheet,
 } from "lucide-react";
 import { useAuditores } from "../hooks/useAuditores";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import DeleteButton from "../components/ui/DeleteButton";
 import { InteractionStatus } from "@azure/msal-browser";
+import { ActiveTab } from "../components/ui/ActiveTab";
 
 
 export default function AdminPage() {
@@ -22,10 +24,13 @@ export default function AdminPage() {
   const router = useRouter();
   const { auditores, cargarAuditores: recargarLista } = useAuditores();
 
-  const [activeTab, setActiveTab] = useState<"logs" | "auditores">("auditores");
+  const [activeTab, setActiveTab] = useState<"logs" | "auditores" | "estadisticas">("auditores");
   const [logs, setLogs] = useState<SystemLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [initializing, setInitializing] = useState<boolean>(true);
+  const [statsData, setStatsData] = useState<StatsData | null>(null);
+  const [statsLoading, setStatsLoading] = useState<boolean>(false);
+  const [statsError, setStatsError] = useState("");
 
   // Estado para nuevo auditor
   const [newAuditorData, setNewAuditorData] = useState({
@@ -70,14 +75,19 @@ export default function AdminPage() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const logsData = await auditoriaService.getSystemLogs();
+      const [logsData, stats] = await Promise.all([
+      auditoriaService.getSystemLogs(),
+      auditoriaService.getStatsData(),
+    ]);
       setLogs(logsData);
+      setStatsData(stats);
     } catch (error) {
       console.error("Error cargando logs del sistema", error);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleCreateAuditor = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +113,23 @@ export default function AdminPage() {
       console.error(e);
     }
   };
+
+  const getChangeDescription = (log: SystemLog) => {
+    const { action, table_name, new_data, old_data, record_id } = log;
+
+    switch (action) {
+      case "INSERT":
+        return `Se creó un nuevo registro en la tabla ${table_name} con ID ${record_id}. Detalles: ${new_data}`;
+      case "UPDATE":
+        return `Se actualizó un registro en la tabla ${table_name} con ID ${record_id}. Cambios: De ${old_data} a ${new_data}`;
+      case "DELETE":
+        return `Se eliminó un registro de la tabla ${table_name} con ID ${record_id}. Detalles del registro eliminado: ${old_data}`;
+      default:
+        return "Acción desconocida";
+    }
+  };
+
+
 
   if (inProgress !== InteractionStatus.None || initializing) {
     return (
@@ -138,40 +165,42 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <ShieldAlert className="text-red-600" /> Panel de Administración
           </h1>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <ThemeToggle />
+          <div className="flex flex-row items-center gap-4 justify-between ">
 
+          <div className="flex justify-between">
             <button
               onClick={() => router.push("/dashboard")}
               className="flex items-center gap-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition cursor-pointer"
             >
               <ArrowLeft /> Volver al Dashboard
             </button>
+
+          </div>
+            <ThemeToggle />
+
           </div>
         </div>
 
         {/* TABS DE NAVEGACIÓN */}
         <div className="flex flex-wrap gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 transition">
-          <button
+          <ActiveTab
+            isActive={activeTab === "auditores"}
             onClick={() => setActiveTab("auditores")}
-            className={`pb-2 px-4 py-2 font-medium flex items-center gap-2 cursor-pointer ${
-              activeTab === "auditores"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-gray-300 "
-            }`}
-          >
-            <UserCog size={18} /> Gestionar Auditores
-          </button>
-          <button
+            label="Gestionar auditores"
+            icon={UserCog}
+          />
+          <ActiveTab
+            isActive={activeTab === "estadisticas"}
+            onClick={() => setActiveTab("estadisticas")}
+            label="Estadísticas"
+            icon={Sheet}
+          />
+          <ActiveTab
+            isActive={activeTab === "logs"}
             onClick={() => setActiveTab("logs")}
-            className={`pb-2 px-4 py-2 font-medium flex items-center gap-2 cursor-pointer ${
-              activeTab === "logs"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-gray-300 "
-            }`}
-          >
-            <History size={18} /> Logs del Sistema
-          </button>
+            label="Logs del Sistema"
+            icon={History}
+          />
         </div>
 
         {/* CONTENIDO: GESTIÓN AUDITORES */}
@@ -271,10 +300,122 @@ export default function AdminPage() {
           </div>
         )}
 
+        {activeTab === "estadisticas" && (
+          <div className="space-y-6">
+            {statsError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
+                {statsError}
+              </div>
+            )}
+
+            {statsLoading ? (
+              <div className="flex items-center justify-center py-10 text-gray-500">
+                <Loader2 className="animate-spin mr-2" size={20} />
+                Cargando estadísticas...
+              </div>
+            ) : statsData ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+                  <p className="text-md sm:text-sm text-gray-500 dark:text-gray-400">Total informes</p>
+                  <p className="text-9xl sm:text-6xl font-bold text-gray-900 dark:text-white mt-3">
+                    {statsData.total_auditorias}
+                  </p>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
+                    Por estado de mejora
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(statsData.por_estado_mejora).map(
+                      ([estado, count]) => (
+                        <span
+                          key={estado}
+                          className={`rounded-full px-3 py-1 text-xs font-medium border ${
+                            estado === "Completado"
+                              ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-200"
+                              : "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300"
+                          }`}
+                        >
+                          {estado}: {count}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
+                    Top temas
+                  </p>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    {Object.entries(statsData.por_tema).map(([tema, count]) => (
+                      <li key={tema} className="flex justify-between gap-4">
+                        <span className="truncate">{tema}</span>
+                        <span className="font-medium">{count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
+                    Por área
+                  </p>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 max-h-40 overflow-auto">
+                    {Object.entries(statsData.por_area).map(([area, count]) => (
+                      <li key={area} className="flex justify-between gap-4">
+                        <span className="truncate">{area}</span>
+                        <span className="font-medium">{count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
+                    Por auditor
+                  </p>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 max-h-40 overflow-auto">
+                    {Object.entries(statsData.por_auditor).map(
+                      ([auditor, count]) => (
+                        <li key={auditor} className="flex justify-between gap-4">
+                          <span className="truncate">{auditor}</span>
+                          <span className="font-medium">{count}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
+                    Por semestre
+                  </p>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    {Object.entries(statsData.por_semestre).map(
+                      ([periodo, count]) => (
+                        <li key={periodo} className="flex justify-between gap-4">
+                          <span>{periodo}</span>
+                          <span className="font-medium">{count}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 px-4 py-6 text-center text-sm text-gray-500">
+                No hay estadísticas disponibles.
+              </div>
+            )}
+          </div>
+        )}
+
         {/* CONTENIDO: LOGS */}
         {activeTab === "logs" && (
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
               <table className="w-full min-w-[720px] text-xs text-left text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                   <tr>
@@ -282,12 +423,12 @@ export default function AdminPage() {
                     <th className="px-4 py-3">Usuario</th>
                     <th className="px-4 py-3">Tabla</th>
                     <th className="px-4 py-3">Acción</th>
-                    <th className="px-4 py-3">ID Reg.</th>
+                    <th className="px-4 py-3">ID asociado</th>
                     <th className="px-4 py-3">Detalle Cambio</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {logs.map((log) => (
+                  {logs.slice(0, 50).map((log) => (
                     <tr
                       key={log.id}
                       className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -318,9 +459,9 @@ export default function AdminPage() {
                       <td className="px-4 py-2 font-mono">{log.record_id}</td>
                       <td
                         className="px-4 py-2 max-w-[180px] sm:max-w-xs truncate"
-                        title={log.new_data || log.old_data}
+                        title={getChangeDescription(log)}
                       >
-                        {log.new_data || log.old_data}
+                        {getChangeDescription(log)}
                       </td>
                     </tr>
                   ))}
