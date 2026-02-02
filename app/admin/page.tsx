@@ -2,7 +2,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useMsal } from "@azure/msal-react";
 import { useRouter } from "next/navigation";
-import { auditoriaService, StatsData, SystemLog } from "@/app/services/auditoriaServices";
+import {
+  auditoriaService,
+  Auditor,
+  StatsData,
+  SystemLog,
+} from "@/app/services/auditoriaServices";
 import {
   ShieldAlert,
   UserPlus,
@@ -17,6 +22,7 @@ import ThemeToggle from "../components/ui/ThemeToggle";
 import DeleteButton from "../components/ui/DeleteButton";
 import { InteractionStatus } from "@azure/msal-browser";
 import { ActiveTab } from "../components/ui/ActiveTab";
+import EditAuditorModal from "../components/admin/EditAuditorModal";
 
 
 export default function AdminPage() {
@@ -31,6 +37,8 @@ export default function AdminPage() {
   const [statsData, setStatsData] = useState<StatsData | null>(null);
   const [statsLoading, setStatsLoading] = useState<boolean>(false);
   const [statsError, setStatsError] = useState("");
+  const [editingAuditor, setEditingAuditor] = useState<Auditor | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Estado para nuevo auditor
   const [newAuditorData, setNewAuditorData] = useState({
@@ -112,6 +120,17 @@ export default function AdminPage() {
       alert("Error eliminando. Puede que tenga auditorías asignadas.");
       console.error(e);
     }
+  };
+
+  const handleEditAuditor = (auditor: Auditor) => {
+    setEditingAuditor(auditor);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveAuditor = async (aud_user: string, aud_name: string) => {
+    await auditoriaService.updateAuditor(aud_user, aud_name);
+    await recargarLista();
+    await recargarLogs();
   };
 
   const getChangeDescription = (log: SystemLog) => {
@@ -248,7 +267,7 @@ export default function AdminPage() {
                   type="submit"
                   className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 cursor-pointer"
                 >
-                  Registrar funcionario
+                  Registrar auditor
                 </button>
               </form>
             </div>
@@ -283,7 +302,14 @@ export default function AdminPage() {
                           >
                             <Trash2 size={18} />
                           </button> */}
-                          <div className="inline-block">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEditAuditor(aud)}
+                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium cursor-pointer hover:bg-gray-700  p-1 rounded-lg"
+                            >
+                              Editar
+                            </button>
                             <DeleteButton
                               onDelete={() => handleDeleteAuditor(aud.aud_user)}
                               itemName="este auditor"
@@ -322,27 +348,37 @@ export default function AdminPage() {
                   </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
-                    Por estado de mejora
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(statsData.por_estado_mejora).map(
-                      ([estado, count]) => (
-                        <span
-                          key={estado}
-                          className={`rounded-full px-3 py-1 text-xs font-medium border ${
-                            estado === "Completado"
-                              ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-200"
-                              : "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300"
-                          }`}
-                        >
-                          {estado}: {count}
-                        </span>
-                      ),
-                    )}
-                  </div>
-                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 justify-between gap-4" >
+                  
+
+  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">
+    Por estado de mejora
+  </p>
+
+  <div className="grid grid-cols-2 gap-4">
+    {Object.entries(statsData.por_estado_mejora).map(([estado, count]) => {
+      const isCompleted = estado === "Completado";
+
+      return (
+        <div
+          key={estado}
+          className={`
+            rounded-xl border flex flex-col items-center justify-center
+            py-6   /* <-- más alto para llenar el espacio */
+            ${isCompleted
+              ? "bg-green-900/40 text-green-200 border-green-400"
+              : "bg-yellow-900/20 text-yellow-300 border-yellow-400"
+            }
+          `}
+        >
+          <span className="text-base font-semibold">{estado}</span>
+          <span className="text-3xl font-bold mt-1">{count}</span>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                   <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
@@ -411,6 +447,13 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        <EditAuditorModal
+          isOpen={isEditModalOpen}
+          auditor={editingAuditor}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveAuditor}
+        />
 
         {/* CONTENIDO: LOGS */}
         {activeTab === "logs" && (

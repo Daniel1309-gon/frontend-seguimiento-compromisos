@@ -269,6 +269,7 @@ export default function OpMejoraItem({
                           ? "text-gray-500 line-through decoration-gray-400"
                           : "text-gray-800 dark:text-white"
                       }`}
+                      style={{ whiteSpace: "pre-line" }}
                     >
                       {hallazgo.compromisos?.action}
                     </p>

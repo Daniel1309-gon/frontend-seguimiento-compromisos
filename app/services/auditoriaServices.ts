@@ -154,6 +154,11 @@ export const auditoriaService = {
     await api.delete(`/auditors/${aud_user}/`);
   },
 
+  updateAuditor: async (aud_user: string, aud_name: string): Promise<Auditor> => {
+    const response = await api.patch(`/auditors/${aud_user}/`, { aud_name });
+    return response.data;
+  },
+
   checkIsAdmin: async () => {
     const response = await api.get<boolean>(`/admin/is-admin/`);
     return response.data;
